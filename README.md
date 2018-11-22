@@ -1,3 +1,19 @@
+# TODO
+
+**Process**
+- read all research papers in DQN lesson
+- work through all openai gym code examples in DQN lesson
+
+
+**Project Deliverables**
+- rewrite readme, describing how someone not familiar with the project should use this repo
+  - describe the environment solved
+  - describe how to install the requirements before running code in repo
+  - report describing the learning algo, including details of implementation and ideas for future work
+
+
+# From Udacity DRLND
+
 [//]: # (Image References)
 
 [image1]: https://user-images.githubusercontent.com/10624937/42135619-d90f2f28-7d12-11e8-8823-82b970a54d7e.gif "Trained Agent"
