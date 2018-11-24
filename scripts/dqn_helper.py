@@ -17,15 +17,22 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 BUFFER_SIZE = int(1e5)  # replay buffer size
 BATCH_SIZE = 64         # minibatch size
 GAMMA = 0.97            # discount factor
+ALPHA = 0.4
 TAU = 1e-3              # for soft update of target parameters
 LR = 1e-4               # learning rate
 UPDATE_EVERY = 4        # how often to update the network
 SEED = 0
+HIDDEN_LAYERS = [64,64]
 
 class Base():
-    """Interacts with and learns from the environment."""
+    """
+    Interacts with and learns from the environment.
+    Inspired by code from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
+    """
 
-    def __init__(self, state_size, action_size, seed):
+    def __init__(self, state_size, action_size, seed, hidden_layers=HIDDEN_LAYERS,
+                 buffer_size=BUFFER_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR,
+                 update_every=UPDATE_EVERY):
         """Initialize an Agent object.
 
         Params
@@ -37,6 +44,12 @@ class Base():
         self.state_size = state_size
         self.action_size = action_size
         self.seed = random.seed(seed)
+        self.hidden_layers = hidden_layers
+        self.buffer_size = int(buffer_size)
+        self.batch_size = batch_size
+        self.gamma = gamma
+        self.lr = lr
+        self.update_every = update_every
 
         # Q-Network
         self.qnetwork_local = QNetwork(state_size, action_size, seed).to(device)
@@ -123,30 +136,34 @@ class Base():
 
 class Double(Base):
     """
-    Interacts with and learns from the environment.
-    Code inspired from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
+    To address overestimation of Q (action) values.
+    See paper "Deep Reinforcement Learning with Double Q-learning" at https://arxiv.org/abs/1509.06461
+    Inspired by code from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
     """
 
-    def __init__(self, state_size, action_size, hidden_layers, seed=SEED, buffer_size=BUFFER_SIZE,
-                 batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR, update_every=UPDATE_EVERY):
-        super().__init__(state_size, action_size, hidden_layers, seed, buffer_size=BUFFER_SIZE,
-                 batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR, update_every=UPDATE_EVERY)
+    def __init__(self, state_size, action_size, seed, hidden_layers=HIDDEN_LAYERS,
+                 buffer_size=BUFFER_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR,
+                 update_every=UPDATE_EVERY):
+        super().__init__(state_size, action_size, seed, hidden_layers=HIDDEN_LAYERS,
+                     buffer_size=BUFFER_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR,
+                     update_every=UPDATE_EVERY)
+        """Initialize an Agent object."""
 
     def learn(self, experiences, gamma):
         """Update value parameters using given batch of experience tuples.
+
         Params
         ======
-            experiences (Tuple[torch.Variable]): tuple of (s, a, r, s', done) tuples
+            experiences (Tuple[torch.Tensor]): tuple of (s, a, r, s', done) tuples
             gamma (float): discount factor
         """
         states, actions, rewards, next_states, dones = experiences
 
-        # Get max action from local model
         local_max_actions = self.qnetwork_local(next_states).detach().max(1)[1].unsqueeze(1)
 
         # Get max predicted Q values (for next states) from target model
-        Q_targets_next = torch.gather(self.qnetwork_target(next_states).detach(), 1, local_max_actions)
-
+        # Q_targets_next = self.qnetwork_target(next_states).detach().max(1)[0].unsqueeze(1)
+        Q_targets_next = torch.gather(self.qnetwork_target(next_states).detach(),1,local_max_actions)
         # Compute Q targets for current states
         Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
 
@@ -163,48 +180,49 @@ class Double(Base):
         # ------------------- update target network ------------------- #
         self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
 
-
 class PrioritizedReplay(Double):
     """
-    Interacts with and learns from the environment.
+    Mark experiences in buffer based on TD Error representing priority (more can be learned from higher TD Errors).
+    See paper "Prioritized Experience Replay" at https://arxiv.org/abs/1511.05952
     Code inspired from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
     """
+    def __init__(self, state_size, action_size, seed, hidden_layers=HIDDEN_LAYERS,
+                 buffer_size=BUFFER_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR,
+                 update_every=UPDATE_EVERY):
+        super().__init__(state_size, action_size, seed, hidden_layers=HIDDEN_LAYERS,
+                     buffer_size=BUFFER_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR,
+                     update_every=UPDATE_EVERY)
 
-    def __init__(self, state_size, action_size, hidden_layers, seed):
-        super().__init__(state_size, action_size, hidden_layers, seed)
+        # Prioritized experience replay
+        self.memory = PrioritizedReplayBuffer(action_size,batch_size,seed,buffer_size)
 
-        # Prioritized Experienced Replay memory
-        self.memory = PrioritizedReplayBuffer(action_size, self.buffer_size, self.batch_size, seed)
-
-    def step(self, state, action, reward, next_state, done, beta = 1.):
-        # Save experience in replay memory
+    def step(self, state, action, reward, next_state, done, beta = 1.0):
+        # save experience in replay memory
         self.memory.add(state, action, reward, next_state, done)
 
-        # Learn every update_every time steps.
+        # learn every time step
         self.t_step = (self.t_step + 1) % self.update_every
         if self.t_step == 0:
-            # If enough samples are available in memory, get random subset and learn
-            if len(self.memory) > self.batch_size:
+            # if enough samples in memory, get randome subset and learn
+            if len(self.memory)> self.batch_size:
                 experiences = self.memory.sample(ALPHA, beta)
-                # Is line below required? Don't think so looks like no-op ...
-                #action_values = self.qnetwork_local(experiences[0])
                 self.learn(experiences, self.gamma)
 
     def learn(self, experiences, gamma):
         """Update value parameters using given batch of experience tuples.
+
         Params
         ======
-            experiences (Tuple[torch.Variable]): tuple of (s, a, r, s', done) tuples
+            experiences (Tuple[torch.Tensor]): tuple of (s, a, r, s', done) tuples
             gamma (float): discount factor
         """
         states, actions, rewards, next_states, dones, weights, indices = experiences
 
-        # Get max action from local model
         local_max_actions = self.qnetwork_local(next_states).detach().max(1)[1].unsqueeze(1)
 
         # Get max predicted Q values (for next states) from target model
-        Q_targets_next = torch.gather(self.qnetwork_target(next_states).detach(), 1, local_max_actions)
-
+        # Q_targets_next = self.qnetwork_target(next_states).detach().max(1)[0].unsqueeze(1)
+        Q_targets_next = torch.gather(self.qnetwork_target(next_states).detach(),1,local_max_actions)
         # Compute Q targets for current states
         Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
 
@@ -212,21 +230,34 @@ class PrioritizedReplay(Double):
         Q_expected = self.qnetwork_local(states).gather(1, actions)
 
         # Compute loss
-        #loss = F.mse_loss(Q_expected, Q_targets)
-        loss  = (Q_expected - Q_targets).pow(2) * weights
+        # loss = F.mse_loss(Q_expected, Q_targets)
+        loss = (Q_expected - Q_targets).pow(2)*weights
         prios = loss + 1e-5
-        loss  = loss.mean()
+        loss = loss.mean()
 
         # Minimize the loss
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
 
-        # Update priorities based on td error
-        self.memory.update_priorities(indices.squeeze().to('cpu').data.numpy(), prios.squeeze().to('cpu').data.numpy())
+        # update priorities based on td error
+        self.memory.update_priorities(indices.squeeze().to('cpu').data.numpy(),prios.squeeze().to('cpu').data.numpy())
 
         # ------------------- update target network ------------------- #
         self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
+
+"""
+TODO: Add Dueling DQN
+    Use two network streams, one that estimates state V(s), and one that estimates advantage for each action A(s,a).
+    Q values obtained by combining state and advantage values.
+    See paper "Dueling Network Architectures for Deep Reinforcement Learning" at https://arxiv.org/abs/1511.06581
+"""
+
+"""
+TODO: Add Rainbow DQN (or remaining components thereof).
+"""
+
+
 
 class ReplayBuffer:
     """Fixed-size buffer to store experience tuples."""
@@ -263,6 +294,70 @@ class ReplayBuffer:
         dones = torch.from_numpy(np.vstack([e.done for e in experiences if e is not None]).astype(np.uint8)).float().to(device)
 
         return (states, actions, rewards, next_states, dones)
+
+    def __len__(self):
+        """Return the current size of internal memory."""
+        return len(self.memory)
+
+class PrioritizedReplayBuffer:
+    """
+    Naive Prioritized Experience Replay buffer to store experience tuples.
+    Code inspired by https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
+    """
+
+    def __init__(self, action_size, batch_size, seed, buffer_size=BUFFER_SIZE):
+        """Initialize a ReplayBuffer object.
+
+        Params
+        ======
+            action_size (int): dimension of each action
+            buffer_size (int): maximum size of buffer
+            batch_size (int): size of each training batch
+            seed (int): random seed
+        """
+        self.action_size = action_size
+        self.memory = deque(maxlen=buffer_size)
+        self.batch_size = batch_size
+        self.experience = namedtuple("Experience", field_names=["state", "action", "reward", "next_state", "done","priority"])
+        self.seed = random.seed(seed)
+
+    def add(self, state, action, reward, next_state, done):
+        """Add a new experience to memory."""
+        # set max priority level
+        max_priority = max([m.priority for m in self.memory]) if self.memory else 1.0
+        e = self.experience(state, action, reward, next_state, done, max_priority)
+        self.memory.append(e)
+
+    def sample(self, alpha, beta):
+        """Randomly sample a batch of experiences from memory."""
+        # probability associated with each entry in memory
+        priorities = np.array([sample.priority for sample in self.memory])
+        probs = priorities ** alpha
+        probs /= probs.sum()
+
+        indices = np.random.choice(len(self.memory),self.batch_size, replace=False, p=probs)
+
+        # experiences = random.sample(self.memory, k=self.batch_size)
+        experiences = [self.memory[idx] for idx in indices]
+
+        # importance sampling weights
+        total = len(self.memory)
+        weights = (total*probs[indices])**(-beta)
+        weights /= weights.max()
+        weights = np.array(weights, dtype=np.float32)
+
+        states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(device)
+        actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).long().to(device)
+        rewards = torch.from_numpy(np.vstack([e.reward for e in experiences if e is not None])).float().to(device)
+        next_states = torch.from_numpy(np.vstack([e.next_state for e in experiences if e is not None])).float().to(device)
+        dones = torch.from_numpy(np.vstack([e.done for e in experiences if e is not None]).astype(np.uint8)).float().to(device)
+        weights = torch.from_numpy(np.vstack(weights)).float().to(device)
+        indices = torch.from_numpy(np.vstack(indices)).long().to(device)
+        return (states, actions, rewards, next_states, dones, weights, indices)
+
+    def update_priorities(self, indices, priorities):
+        for i, idx in enumerate(indices):
+            self.memory[idx] = self.memory[idx]._replace(priority=priorities[i])
 
     def __len__(self):
         """Return the current size of internal memory."""

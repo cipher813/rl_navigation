@@ -1,9 +1,10 @@
 """
-Base DQN implementation.
+DQN implementations.
 Adapted from code at https://github.com/udacity/deep-reinforcement-learning/tree/master/dqn
 """
 # imports
 import re
+import time
 import pickle
 import datetime
 import numpy as np
@@ -28,7 +29,7 @@ train_mode=True
 
 timestamp = re.sub(r"\D","",str(datetime.datetime.now()))[:12]
 
-def dqn(n_episodes, max_t, eps_start, eps_end, eps_decay,train_mode):
+def dqn(model_name, n_episodes, max_t, eps_start, eps_end, eps_decay,train_mode):
     """Deep Q-Learning.
 
     Params
@@ -68,7 +69,7 @@ def dqn(n_episodes, max_t, eps_start, eps_end, eps_decay,train_mode):
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
         if np.mean(scores_window)>=13.0:
             print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
-            checkpath = CHECKPOINT_PATH + f'checkpoint-{timestamp}.pth'
+            checkpath = CHECKPOINT_PATH + f'checkpoint-{model_name}-{timestamp}.pth'
             torch.save(agent.qnetwork_local.state_dict(), checkpath)
             print(f"Checkpoint saved at {checkpath}")
             break
@@ -97,36 +98,36 @@ state_size = len(state)
 print('States have length:', state_size)
 
 # train agent
-# result_dict = {}
-agent = Base(state_size, action_size, seed)
-# function_list = [
-#                  ("Base",Base(state_size, action_size, seed)),
-#                  ("Double", Double(state_size, action_size)),
-#                  ("PrioritizedReplay",PrioritizedReplay(state_size, action_size, seed))
-#                 ]
-#
-# for function in function_list:
-#     name = function[0]
-#     agent = function[1]
+# agent = Base(state_size, action_size, seed)
+result_dict = {}
+function_list = [
+                 ("Base",Base(state_size, action_size, seed)),
+                 ("Double", Double(state_size, action_size, seed)),
+                 ("PrioritizedReplay",PrioritizedReplay(state_size, action_size, seed))
+                ]
 
-scores = dqn(n_episodes, max_t, eps_start, eps_end, eps_decay,train_mode)
+for function in function_list:
+    start = time.time()
+    name = function[0]
+    agent = function[1]
+    print(f"**{name}**")
+    scores = dqn(name, n_episodes, max_t, eps_start, eps_end, eps_decay,train_mode)
+    end = time.time()
+    result_dict[name] = {
+                    "scores":scores,
+                    "clocktime":round((end-start)/60,2),
+                    "state_size":state_size,
+                    "action_size":action_size,
+                    "seed":seed,
+                    "n_episodes":n_episodes,
+                    "max_t":max_t,
+                    "eps_start":eps_start,
+                    "eps_end":eps_end,
+                    "eps_decay":eps_decay,
+                    "train_mode":train_mode
+                    }
 
 pklpath = CHART_PATH + f"ResultDict-{timestamp}.pkl"
-
-result_dict = {
-# result_dict[name] = {
-                "scores":scores,
-                "state_size":state_size,
-                "action_size":action_size,
-                "seed":seed,
-                "n_episodes":n_episodes,
-                "max_t":max_t,
-                "eps_start":eps_start,
-                "eps_end":eps_end,
-                "eps_decay":eps_decay,
-                "train_mode":train_mode
-                }
-
 with open(pklpath, 'wb') as handle:
     pickle.dump(result_dict, handle)
 print(f"Scores pickled at {pklpath}")
