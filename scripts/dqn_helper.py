@@ -1,8 +1,3 @@
-"""
-Base DQN implementation.
-Adapted from code at https://github.com/udacity/deep-reinforcement-learning/tree/master/dqn
-"""
-# imports
 import re
 import pickle
 import random
@@ -19,22 +14,15 @@ import torch.optim as optim
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-# path information
-PATH = "/Volumes/BC_Clutch/Dropbox/DeepRLND/rl_navigation/"
-APP_PATH = PATH + "data/Banana.app"
-CHART_PATH = PATH + "charts/"
-CHECKPOINT_PATH = PATH + "models/"
-
 BUFFER_SIZE = int(1e5)  # replay buffer size
 BATCH_SIZE = 64         # minibatch size
-GAMMA = 0.99            # discount factor
+GAMMA = 0.97            # discount factor
 TAU = 1e-3              # for soft update of target parameters
-LR = 5e-4               # learning rate
+LR = 1e-4               # learning rate
 UPDATE_EVERY = 4        # how often to update the network
+SEED = 0
 
-timestamp = re.sub(r"\D","",str(datetime.datetime.now()))[:12]
-
-class Agent():
+class Base():
     """Interacts with and learns from the environment."""
 
     def __init__(self, state_size, action_size, seed):
@@ -133,6 +121,112 @@ class Agent():
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
 
+class Double(Base):
+    """
+    Interacts with and learns from the environment.
+    Code inspired from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
+    """
+
+    def __init__(self, state_size, action_size, hidden_layers, seed=SEED, buffer_size=BUFFER_SIZE,
+                 batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR, update_every=UPDATE_EVERY):
+        super().__init__(state_size, action_size, hidden_layers, seed, buffer_size=BUFFER_SIZE,
+                 batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR, update_every=UPDATE_EVERY)
+
+    def learn(self, experiences, gamma):
+        """Update value parameters using given batch of experience tuples.
+        Params
+        ======
+            experiences (Tuple[torch.Variable]): tuple of (s, a, r, s', done) tuples
+            gamma (float): discount factor
+        """
+        states, actions, rewards, next_states, dones = experiences
+
+        # Get max action from local model
+        local_max_actions = self.qnetwork_local(next_states).detach().max(1)[1].unsqueeze(1)
+
+        # Get max predicted Q values (for next states) from target model
+        Q_targets_next = torch.gather(self.qnetwork_target(next_states).detach(), 1, local_max_actions)
+
+        # Compute Q targets for current states
+        Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
+
+        # Get expected Q values from local model
+        Q_expected = self.qnetwork_local(states).gather(1, actions)
+
+        # Compute loss
+        loss = F.mse_loss(Q_expected, Q_targets)
+        # Minimize the loss
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+
+        # ------------------- update target network ------------------- #
+        self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
+
+
+class PrioritizedReplay(Double):
+    """
+    Interacts with and learns from the environment.
+    Code inspired from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
+    """
+
+    def __init__(self, state_size, action_size, hidden_layers, seed):
+        super().__init__(state_size, action_size, hidden_layers, seed)
+
+        # Prioritized Experienced Replay memory
+        self.memory = PrioritizedReplayBuffer(action_size, self.buffer_size, self.batch_size, seed)
+
+    def step(self, state, action, reward, next_state, done, beta = 1.):
+        # Save experience in replay memory
+        self.memory.add(state, action, reward, next_state, done)
+
+        # Learn every update_every time steps.
+        self.t_step = (self.t_step + 1) % self.update_every
+        if self.t_step == 0:
+            # If enough samples are available in memory, get random subset and learn
+            if len(self.memory) > self.batch_size:
+                experiences = self.memory.sample(ALPHA, beta)
+                # Is line below required? Don't think so looks like no-op ...
+                #action_values = self.qnetwork_local(experiences[0])
+                self.learn(experiences, self.gamma)
+
+    def learn(self, experiences, gamma):
+        """Update value parameters using given batch of experience tuples.
+        Params
+        ======
+            experiences (Tuple[torch.Variable]): tuple of (s, a, r, s', done) tuples
+            gamma (float): discount factor
+        """
+        states, actions, rewards, next_states, dones, weights, indices = experiences
+
+        # Get max action from local model
+        local_max_actions = self.qnetwork_local(next_states).detach().max(1)[1].unsqueeze(1)
+
+        # Get max predicted Q values (for next states) from target model
+        Q_targets_next = torch.gather(self.qnetwork_target(next_states).detach(), 1, local_max_actions)
+
+        # Compute Q targets for current states
+        Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
+
+        # Get expected Q values from local model
+        Q_expected = self.qnetwork_local(states).gather(1, actions)
+
+        # Compute loss
+        #loss = F.mse_loss(Q_expected, Q_targets)
+        loss  = (Q_expected - Q_targets).pow(2) * weights
+        prios = loss + 1e-5
+        loss  = loss.mean()
+
+        # Minimize the loss
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+
+        # Update priorities based on td error
+        self.memory.update_priorities(indices.squeeze().to('cpu').data.numpy(), prios.squeeze().to('cpu').data.numpy())
+
+        # ------------------- update target network ------------------- #
+        self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
 
 class ReplayBuffer:
     """Fixed-size buffer to store experience tuples."""
@@ -198,82 +292,3 @@ class QNetwork(nn.Module):
         x = F.relu(self.fc1(state))
         x = F.relu(self.fc2(x))
         return self.fc3(x)
-
-def dqn(n_episodes=1000, max_t=1000, eps_start=1.0, eps_end=0.01, eps_decay=0.995,train_mode=False):
-    """Deep Q-Learning.
-
-    Params
-    ======
-        n_episodes (int): maximum number of training episodes
-        max_t (int): maximum number of timesteps per episode
-        eps_start (float): starting value of epsilon, for epsilon-greedy action selection
-        eps_end (float): minimum value of epsilon
-        eps_decay (float): multiplicative factor (per episode) for decreasing epsilon
-    """
-    env_info = env.reset(train_mode=train_mode)[brain_name]
-    scores = []                        # list containing scores from each episode
-    scores_window = deque(maxlen=100)  # last 100 scores
-    eps = eps_start
-    print("Loading monkey.")
-    print("Monkey training on bananas.")
-    for i_episode in range(1, n_episodes+1):
-        state = env.reset()
-        score = 0
-        for t in range(max_t):
-            state = env_info.vector_observations[0]            # get the current state
-            action = agent.act(state, eps)
-            env_info = env.step(action)[brain_name]        # send the action to the environment
-            next_state = env_info.vector_observations[0]   # get the next state
-            reward = env_info.rewards[0]                   # get the reward
-            done = env_info.local_done[0]
-            agent.step(state, action, reward, next_state, done)
-            score += reward                                # update the score
-            state = next_state                             # roll over the state to next time step
-            if done:                                       # exit loop if episode finished
-                break
-        scores_window.append(score)       # save most recent score
-        scores.append(score)              # save most recent score
-        eps = max(eps_end, eps_decay*eps) # decrease epsilon
-        print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)), end="")
-        if i_episode % 100 == 0:
-            print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
-        if np.mean(scores_window)>=13.0:
-            print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
-            checkpath = CHECKPOINT_PATH + f'checkpoint-{timestamp}.pth'
-            torch.save(agent.qnetwork_local.state_dict(), checkpath)
-            print(f"Checkpoint saved at {checkpath}")
-            break
-    return scores
-
-# setup and examine environment
-env = UnityEnvironment(file_name=APP_PATH)
-
-brain_name = env.brain_names[0]
-brain = env.brains[brain_name]
-
-# reset the environment
-env_info = env.reset(train_mode=True)[brain_name]
-
-# number of agents in the environment
-print('Number of agents:', len(env_info.agents))
-
-# number of actions
-action_size = brain.vector_action_space_size
-print('Number of actions:', action_size)
-
-# examine the state space
-state = env_info.vector_observations[0]
-print('States look like:\n', state)
-state_size = len(state)
-print('States have length:', state_size)
-
-# train agent
-agent = Agent(state_size=37, action_size=4, seed=0)
-
-scores = dqn(train_mode=True)
-
-pklpath = CHART_PATH + f"NavigationTrainChart-{timestamp}.pkl"
-
-with open(pklpath, 'wb') as handle:
-    pickle.dump(scores, handle)
-print(f"Scores pickled at {pklpath}")
