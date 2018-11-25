@@ -69,14 +69,28 @@ def train_gym(CHART_PATH, module, timestamp, seed, score_target,
 #    plot_results(CHART_PATH, result_dict, label, timestamp,100)
     return result_dict
 
-module = "LunarLander-v2"
-score_target = -200#200.0
-seed = 0
-n_episodes=2000
-max_t=1000
-eps_start=0.5
-eps_end=0.01
-eps_decay=0.995
+env_dict = {
+            "LunarLaner-v2":200.0,
+            "CartPole-v0":195.0,
+            "MountainCar-v0":-110,
+            "BipedalWalker-v2":300.0
+            }
 
-results = train_gym(CHART_PATH, module, timestamp, seed, score_target, 
-                    n_episodes,max_t,eps_start,eps_end,eps_decay)
+rd = {}
+for k,v in env_dict.items():
+    module = k
+    score_target = v
+    seed = 0
+    n_episodes=2000
+    max_t=1000
+    eps_start=0.5
+    eps_end=0.01
+    eps_decay=0.995
+
+    results = train_gym(CHART_PATH, module, timestamp, seed, score_target, 
+                        n_episodes,max_t,eps_start,eps_end,eps_decay)
+    rd.append(results)
+pklpath = CHART_PATH + f"ResultDict-AllGym-{timestamp}.pkl"
+with open(pklpath, 'wb') as handle:
+    pickle.dump(result_dict, handle)
+    print(f"Scores pickled at {pklpath}")

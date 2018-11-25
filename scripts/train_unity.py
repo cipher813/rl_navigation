@@ -77,7 +77,7 @@ def train_unity(APP_PATH, CHART_PATH, timestamp, seed, score_target,
     return result_dict
 
 APP_PATH = PATH + "data/Banana.app"
-score_target = -1.0 # 13.0 to meet project goals
+score_target = 13.0 # 13.0 to meet project goals
 seed = 0
 n_episodes=1000
 max_t=1000
