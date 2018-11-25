@@ -17,6 +17,8 @@ APP_PATH = PATH + "data/Banana.app"
 CHART_PATH = PATH + "charts/"
 CHECKPOINT_PATH = PATH + "models/"
 
+score_target = 0.0 # 13.0 to meet project goals
+
 state_size = 37
 action_size = 4
 seed = 0
@@ -67,7 +69,7 @@ def dqn(model_name, n_episodes, max_t, eps_start, eps_end, eps_decay,train_mode)
         print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)), end="")
         if i_episode % 100 == 0:
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
-        if np.mean(scores_window)>=13.0:
+        if np.mean(scores_window)>=score_target:
             print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
             checkpath = CHECKPOINT_PATH + f'checkpoint-{model_name}-{timestamp}.pth'
             torch.save(agent.qnetwork_local.state_dict(), checkpath)
@@ -98,7 +100,6 @@ state_size = len(state)
 print('States have length:', state_size)
 
 # train agent
-# agent = Base(state_size, action_size, seed)
 result_dict = {}
 function_list = [
                  ("Base",Base(state_size, action_size, seed)),

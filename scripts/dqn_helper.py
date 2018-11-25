@@ -22,7 +22,7 @@ TAU = 1e-3              # for soft update of target parameters
 LR = 1e-4               # learning rate
 UPDATE_EVERY = 4        # how often to update the network
 SEED = 0
-HIDDEN_LAYERS = [64,64]
+# HIDDEN_LAYERS = [64,64]
 
 class Base():
     """
@@ -30,7 +30,7 @@ class Base():
     Inspired by code from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
     """
 
-    def __init__(self, state_size, action_size, seed, hidden_layers=HIDDEN_LAYERS,
+    def __init__(self, state_size, action_size, seed,
                  buffer_size=BUFFER_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR,
                  update_every=UPDATE_EVERY):
         """Initialize an Agent object.
@@ -44,7 +44,7 @@ class Base():
         self.state_size = state_size
         self.action_size = action_size
         self.seed = random.seed(seed)
-        self.hidden_layers = hidden_layers
+        # self.hidden_layers = hidden_layers
         self.buffer_size = int(buffer_size)
         self.batch_size = batch_size
         self.gamma = gamma
@@ -141,10 +141,10 @@ class Double(Base):
     Inspired by code from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
     """
 
-    def __init__(self, state_size, action_size, seed, hidden_layers=HIDDEN_LAYERS,
+    def __init__(self, state_size, action_size, seed,
                  buffer_size=BUFFER_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR,
                  update_every=UPDATE_EVERY):
-        super().__init__(state_size, action_size, seed, hidden_layers=HIDDEN_LAYERS,
+        super().__init__(state_size, action_size, seed,
                      buffer_size=BUFFER_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR,
                      update_every=UPDATE_EVERY)
         """Initialize an Agent object."""
@@ -186,10 +186,10 @@ class PrioritizedReplay(Double):
     See paper "Prioritized Experience Replay" at https://arxiv.org/abs/1511.05952
     Code inspired from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
     """
-    def __init__(self, state_size, action_size, seed, hidden_layers=HIDDEN_LAYERS,
+    def __init__(self, state_size, action_size, seed,
                  buffer_size=BUFFER_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR,
                  update_every=UPDATE_EVERY):
-        super().__init__(state_size, action_size, seed, hidden_layers=HIDDEN_LAYERS,
+        super().__init__(state_size, action_size, seed,
                      buffer_size=BUFFER_SIZE, batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR,
                      update_every=UPDATE_EVERY)
 
