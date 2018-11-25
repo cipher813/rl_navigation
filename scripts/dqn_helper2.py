@@ -338,3 +338,28 @@ class PriorityReplay(Double):
 
         # ------------------- update target network ------------------- #
         self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
+        
+def plot_results(CHART_PATH, results, label, timestamp, roll_length):
+    """
+    roll_length: averaging window
+    """
+    results = pd.DataFrame(results)
+    chartpath = CHART_PATH + f"Results-{label}-{timestamp}.png"
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    for mod in results.columns:
+        scores = results[mod]['scores']
+        avg_scores = []
+        for i in range(1,len(scores)+1):
+            start = np.max(i-roll_length,0)
+            end = i
+            nm = np.sum(scores[start:end])
+            dn = len(scores[start:end])
+            avg_scores.append(nm/dn)
+        plt.plot(np.arange(len(scores)), avg_scores,label=mod)
+        plt.ylabel('Score')
+        plt.xlabel('Episode #')
+        plt.legend()
+    plt.savefig(chartpath)
+    print(f"Chart saved at {chartpath}")
+    plt.show()
