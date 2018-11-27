@@ -2,8 +2,9 @@
 DQN implementations.
 Adapted from code at https://github.com/udacity/deep-reinforcement-learning/tree/master/dqn
 """
-from dqn_helper2 import *
+from dqn_helper3 import *
 
+import time 
 import numpy as np
 import pandas as pd
 
@@ -15,8 +16,8 @@ PATH = "/Volumes/BC_Clutch/Dropbox/DeepRLND/rl_navigation/"
 CHART_PATH = PATH + "charts/"
 CHECKPOINT_PATH = PATH + "models/"
 
-def train_gym(CHART_PATH, module, timestamp, seed, score_target, 
-              n_episodes,max_t,eps_start,eps_end,eps_decay): #agent_dict, 
+def train_gym(CHART_PATH, module, timestamp, seed, score_target,
+              n_episodes,max_t,eps_start,eps_end,eps_decay): #agent_dict,
     start = time.time()
     label = "gym"
     env = gym.make(module)
@@ -53,7 +54,7 @@ def train_gym(CHART_PATH, module, timestamp, seed, score_target,
                 print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
             if np.mean(scores_window)>=score_target:
                 print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
-                checkpath = CHECKPOINT_PATH + f'checkpoint-{label}-{agent_name}-{timestamp}.pth'
+                checkpath = CHECKPOINT_PATH + f'checkpoint-{label}-{module}-{agent_name}-{timestamp}.pth'
                 torch.save(agent.qnetwork_local.state_dict(), checkpath)
                 print(f"Checkpoint saved at {checkpath}")
                 break
@@ -62,7 +63,7 @@ def train_gym(CHART_PATH, module, timestamp, seed, score_target,
                         "scores":scores,
                         "clocktime":round((end-start)/60,2)
                         }
-    pklpath = CHART_PATH + f"ResultDict-{label}-{timestamp}.pkl"
+    pklpath = CHART_PATH + f"ResultDict-{label}-{module}-{timestamp}.pkl"
     with open(pklpath, 'wb') as handle:
         pickle.dump(result_dict, handle)
     print(f"Scores pickled at {pklpath}")
@@ -70,10 +71,10 @@ def train_gym(CHART_PATH, module, timestamp, seed, score_target,
     return result_dict
 
 env_dict = {
-            "LunarLaner-v2":200.0,
+            "LunarLander-v2":200.0,
             "CartPole-v0":195.0,
             "MountainCar-v0":-110,
-            "BipedalWalker-v2":300.0
+            # "BipedalWalker-v2":-300.0
             }
 
 rd = {}
@@ -81,16 +82,16 @@ for k,v in env_dict.items():
     module = k
     score_target = v
     seed = 0
-    n_episodes=2000
+    n_episodes=5000
     max_t=1000
-    eps_start=0.5
+    eps_start=0.4
     eps_end=0.01
     eps_decay=0.995
-
-    results = train_gym(CHART_PATH, module, timestamp, seed, score_target, 
+    print(f"Module: {module}")
+    results = train_gym(CHART_PATH, module, timestamp, seed, score_target,
                         n_episodes,max_t,eps_start,eps_end,eps_decay)
-    rd.append(results)
+    rd[module] = results
 pklpath = CHART_PATH + f"ResultDict-AllGym-{timestamp}.pkl"
 with open(pklpath, 'wb') as handle:
-    pickle.dump(result_dict, handle)
+    pickle.dump(rd, handle)
     print(f"Scores pickled at {pklpath}")

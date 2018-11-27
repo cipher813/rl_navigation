@@ -1,5 +1,5 @@
 """
-Helper file for the DQN training notebook.
+Deep Q Network helper file.
 Udacity Deep Reinforcement Learning Nanodegree, December 2018.
 """
 import re
@@ -55,7 +55,7 @@ class QNetwork(nn.Module):
         x = F.relu(self.fc1(state))
         x = F.relu(self.fc2(x))
         return self.fc3(x)
-    
+
 class ReplayBuffer:
     """Fixed-size buffer to store experience tuples."""
 
@@ -95,7 +95,7 @@ class ReplayBuffer:
     def __len__(self):
         """Return the current size of internal memory."""
         return len(self.memory)
-    
+
 class PriorityReplayBuffer(ReplayBuffer):
     """Fixed-size buffer to store experience tuples."""
 
@@ -117,17 +117,17 @@ class PriorityReplayBuffer(ReplayBuffer):
         priorities = np.array([sample.priority for sample in self.memory])
         probs = priorities ** alpha
         probs /= probs.sum()
-        
+
         indices = np.random.choice(len(self.memory), self.batch_size, replace=False, p=probs)
-        
+
 #         experiences = random.sample(self.memory, k=self.batch_size)
         experiences = [self.memory[idx] for idx in indices]
-    
+
         total = len(self.memory)
         weights = (total*probs[indices])**(-beta)
         weights /= weights.max()
         weights = np.array(weights, dtype=np.float32)
-        
+
         states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(device)
         actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).long().to(device)
         rewards = torch.from_numpy(np.vstack([e.reward for e in experiences if e is not None])).float().to(device)
@@ -140,14 +140,14 @@ class PriorityReplayBuffer(ReplayBuffer):
     def update_priorities(self, indices, priorities):
         for i, idx in enumerate(indices):
             self.memory[idx] = self.memory[idx]._replace(priority=priorities[i])
-    
+
 class Vanilla:
     """
     Interacts with and learns from the environment.
     Inspired by code from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
     """
 
-    def __init__(self, state_size, action_size, seed,buffer_size=BUFFER_SIZE, 
+    def __init__(self, state_size, action_size, seed,buffer_size=BUFFER_SIZE,
                  batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR,update_every=UPDATE_EVERY):
         """Initialize an Agent object.
 
@@ -171,7 +171,7 @@ class Vanilla:
         self.qnetwork_target = QNetwork(state_size, action_size, seed).to(device)
         self.optimizer = optim.Adam(self.qnetwork_local.parameters(), lr=LR)
 
-        # Replay memory 
+        # Replay memory
         self.memory = ReplayBuffer(action_size, BATCH_SIZE, seed)
         # Initialize time step (for updating every UPDATE_EVERY steps)
         self.t_step = 0
@@ -248,16 +248,16 @@ class Vanilla:
         """
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
-                
+
 class Double(Vanilla):
     """
     Interacts with and learns from the environment.
     Inspired by code from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
     """
 
-    def __init__(self, state_size, action_size, seed,buffer_size=BUFFER_SIZE, 
+    def __init__(self, state_size, action_size, seed,buffer_size=BUFFER_SIZE,
                  batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR,update_every=UPDATE_EVERY):
-        super().__init__(state_size, action_size, seed,buffer_size=BUFFER_SIZE, 
+        super().__init__(state_size, action_size, seed,buffer_size=BUFFER_SIZE,
                  batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR,update_every=UPDATE_EVERY)
 
     def learn(self, experiences, gamma):
@@ -296,13 +296,13 @@ class PriorityReplay(Double):
     Inspired by code from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
     """
 
-    def __init__(self, state_size, action_size, seed,buffer_size=BUFFER_SIZE, 
+    def __init__(self, state_size, action_size, seed,buffer_size=BUFFER_SIZE,
                  batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR,update_every=UPDATE_EVERY):
-        super().__init__(state_size, action_size, seed,buffer_size=BUFFER_SIZE, 
+        super().__init__(state_size, action_size, seed,buffer_size=BUFFER_SIZE,
                  batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR,update_every=UPDATE_EVERY)
 
         self.memory = PriorityReplayBuffer(action_size, batch_size, seed)
-        
+
     def learn(self, experiences, gamma):
         """Update value parameters using given batch of experience tuples.
 
@@ -332,13 +332,13 @@ class PriorityReplay(Double):
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
-        
+
         # update priorities based on td error
         self.memory.update_priorities(indices.squeeze().to("cpu").data.numpy(),prios.squeeze().to("cpu").data.numpy())
 
         # ------------------- update target network ------------------- #
         self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
-        
+
 def plot_results(CHART_PATH, results, label, timestamp, roll_length):
     """
     roll_length: averaging window
