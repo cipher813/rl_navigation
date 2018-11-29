@@ -77,11 +77,12 @@ class PriorityReplayBuffer(ReplayBuffer):
         self.memory.append(e)
 
     def sample(self, alpha, beta):
-        super().sample(alpha, beta)
+        # super().sample(alpha, beta)
         # returns (states, actions, rewards, next_states, dones)
         priorities = np.array([sample.priority for sample in self.memory])
         probs = priorities ** alpha
         probs /= probs.sum()
+
         indices = np.random.choice(len(self.memory),self.batch_size, replace=False, p=probs)
         experiences = [self.memory[idx] for idx in indices]
         total = len(self.memory)
@@ -89,6 +90,11 @@ class PriorityReplayBuffer(ReplayBuffer):
         weights /= weights.max()
         weights = np.array(weights, dtype=np.float32)
 
+        states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(device)
+        actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).long().to(device)
+        rewards = torch.from_numpy(np.vstack([e.reward for e in experiences if e is not None])).float().to(device)
+        next_states = torch.from_numpy(np.vstack([e.next_state for e in experiences if e is not None])).float().to(device)
+        dones = torch.from_numpy(np.vstack([e.done for e in experiences if e is not None]).astype(np.uint8)).float().to(device)
         weights = torch.from_numpy(np.vstack(weights)).float().to(device)
         indices = torch.from_numpy(np.vstack(indices)).long().to(device)
         return (states, actions, rewards, next_states, dones, weights, indices)
@@ -176,7 +182,9 @@ class Double(Vanilla):
 class PriorityReplay(Double):
     def __init__(self, state_size, action_size, seed, buffer_size=BUFFER_SIZE,
                  batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR, update_freq=UPDATE_FREQ):
-                 self.memory = PriorityReplayBuffer(action_size, batch_size, seed)
+        super().__init__(state_size, action_size, seed, buffer_size=BUFFER_SIZE,
+                     batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR, update_freq=UPDATE_FREQ)
+        self.memory = PriorityReplayBuffer(action_size, batch_size, seed)
 
     def learn(self, experiences, gamma):
         states, actions, rewards, next_states, dones, weights, indices = experiences
