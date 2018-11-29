@@ -344,7 +344,7 @@ class Dueling(nn.Module):
     def __init__(self, state_size, action_size, seed):
         super(Dueling, self).__init__()
         self.state_size = state_size
-        self.action_size = num_actions
+        self.action_size = action_size
         self.seed = random.seed(seed)
 
         self.conv1 = nn.Conv2d(in_channels=state_size, out_channels=32, kernel_size=8, stride=4)
