@@ -2,11 +2,6 @@ from dqn_helper4 import *
 
 import re
 import datetime
-# import numpy as np
-# import pandas as pd
-
-# import gym
-# from unityagents import UnityEnvironment
 
 # path information
 PATH = "/Volumes/BC_Clutch/Dropbox/DeepRLND/rl_navigation/"
@@ -24,10 +19,10 @@ eps_decay=0.995
 
 rd = {}
 env_dict = {
-            "Bananas":["unity",13.0],
+#            "Bananas":["unity",13.0],
             "LunarLander-v2":["gym",200.0],
-            "CartPole-v0":["gym",195.0],
-            "MountainCar-v0":["gym",-110],
+#            "CartPole-v0":["gym",195.0],
+#            "MountainCar-v0":["gym",-110],
             }
 
 rd = train_envs(PATH, CHART_PATH, CHECKPOINT_PATH, timestamp, env_dict, seed,

@@ -11,9 +11,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from collections import namedtuple, deque
-from unityagents import UnityEnvironment
+#from unityagents import UnityEnvironment
 
-import gym
+#import gym
 
 import torch
 import torch.nn as nn
@@ -339,10 +339,10 @@ class PriorityReplay(Double):
         # ------------------- update target network ------------------- #
         self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
 
-class Dueling(nn.Module):
+class Dueling(PriorityReplay):
     """Inspired by code at https://github.com/dxyang/DQN_pytorch/blob/master/model.py."""
     def __init__(self, state_size, action_size, seed):
-        super(Dueling, self).__init__()
+        super(Dueling, self).__init__(state_size, action_size, seed)
         self.state_size = state_size
         self.action_size = action_size
         self.seed = random.seed(seed)
@@ -377,16 +377,17 @@ class Dueling(nn.Module):
 
 def train_gym(CHART_PATH, CHECKPOINT_PATH, module, timestamp, seed, score_target,
               n_episodes,max_t,eps_start,eps_end,eps_decay): #agent_dict,
+    import gym
     start = time.time()
     label = "gym"
     env = gym.make(module)
     state_size = env.observation_space.shape[0]
     action_size = env.action_space.n
     agent_dict = {
-              "Vanilla":Vanilla(state_size, action_size, seed),
-              "Double":Double(state_size, action_size, seed),
+              "Dueling":Dueling(state_size,action_size,seed),
               "PriorityReplay":PriorityReplay(state_size, action_size, seed),
-              "Dueling":Dueling(state_size,action_size,seed)
+              "Double":Double(state_size, action_size, seed),
+              "Vanilla":Vanilla(state_size, action_size, seed)
              }
     result_dict = {}
     for k,v in agent_dict.items():
@@ -431,6 +432,7 @@ def train_gym(CHART_PATH, CHECKPOINT_PATH, module, timestamp, seed, score_target
 
 def train_unity(APP_PATH, CHART_PATH, CHECKPOINT_PATH, timestamp, seed, score_target,
                 n_episodes,max_t,eps_start,eps_end,eps_decay):
+    from unityagents import UnityEnvironment
     label = "unity"
     start = time.time()
     env = UnityEnvironment(file_name=APP_PATH)
@@ -440,10 +442,10 @@ def train_unity(APP_PATH, CHART_PATH, CHECKPOINT_PATH, timestamp, seed, score_ta
     state_size = len(env_info.vector_observations[0])
     action_size = brain.vector_action_space_size
     agent_dict = {
-              "Vanilla":Vanilla(state_size, action_size, seed),
-              "Double":Double(state_size, action_size, seed),
+              "Dueling":Dueling(state_size,action_size,seed),
               "PriorityReplay":PriorityReplay(state_size, action_size, seed),
-              "Dueling":Dueling(state_size,action_size,seed)
+              "Double":Double(state_size, action_size, seed),
+              "Vanilla":Vanilla(state_size, action_size, seed)
              }
     result_dict = {}
     for k,v in agent_dict.items():
@@ -475,7 +477,7 @@ def train_unity(APP_PATH, CHART_PATH, CHECKPOINT_PATH, timestamp, seed, score_ta
                 print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
             if np.mean(scores_window)>=score_target:
                 print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
-                checkpath = CHECKPOINT_PATH + f'checkpoint-{label}-{agent_name}-{timestamp}.pth'
+                checkpath = CHECKPOINT_PATH + f'checkpoint-{timestamp}-{label}-{module}-{agent_name}.pth'
                 torch.save(agent.qnetwork_local.state_dict(), checkpath)
                 print(f"Checkpoint saved at {checkpath}")
                 break
