@@ -392,6 +392,7 @@ def train_gym(CHART_PATH, CHECKPOINT_PATH, module, timestamp, seed, score_target
     result_dict = {}
     for k,v in agent_dict.items():
         agent_name = k
+        print(f"Agent: {k}")
         agent = v
         scores = []                        # list containing scores from each episode
         scores_window = deque(maxlen=100)  # last 100 scores
@@ -414,17 +415,18 @@ def train_gym(CHART_PATH, CHECKPOINT_PATH, module, timestamp, seed, score_target
             if i_episode % 100 == 0:
                 print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
             if np.mean(scores_window)>=score_target:
-                print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
+                end = time.time()
+                print(f'Environment solved in {i_episode:d} episodes!\tAverage Score: {np.mean(scores_window):.2f}\tRuntime: {(end-start)/60:.2f}')
                 checkpath = CHECKPOINT_PATH + f'checkpoint-{timestamp}-{label}-{module}-{agent_name}.pth'
                 torch.save(agent.qnetwork_local.state_dict(), checkpath)
                 print(f"Checkpoint saved at {checkpath}")
                 break
-        end = time.time()
         result_dict[agent_name] = {
                         "scores":scores,
                         "clocktime":round((end-start)/60,2)
                         }
-        pklpath = CHART_PATH + f"ResultDict-{timestamp}-{label}-{module}.pkl"
+        pklpath = CHART_PATH + f"ResultDict-{timestamp}-{label}-{module}-{agent_name}.pkl"
+        # pklpath = CHART_PATH + f"ResultDict-{timestamp}-{label}-{module}.pkl"
         with open(pklpath, 'wb') as handle:
             pickle.dump(result_dict, handle)
         print(f"Scores pickled at {pklpath}")
@@ -450,6 +452,7 @@ def train_unity(APP_PATH, CHART_PATH, CHECKPOINT_PATH, timestamp, seed, score_ta
     result_dict = {}
     for k,v in agent_dict.items():
         agent_name = k
+        print(f"Agent: {k}")
         agent = v
         scores = []                        # list containing scores from each episode
         scores_window = deque(maxlen=100)  # last 100 scores
@@ -476,17 +479,17 @@ def train_unity(APP_PATH, CHART_PATH, CHECKPOINT_PATH, timestamp, seed, score_ta
             if i_episode % 100 == 0:
                 print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
             if np.mean(scores_window)>=score_target:
-                print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
-                checkpath = CHECKPOINT_PATH + f'checkpoint-{timestamp}-{label}-{module}-{agent_name}.pth'
+                end = time.time()
+                print(f'Environment solved in {i_episode:d} episodes!\tAverage Score: {np.mean(scores_window):.2f}\tRuntime: {(end-start)/60:.2f}')
+                checkpath = CHECKPOINT_PATH + f'checkpoint-{timestamp}-{label}-{agent_name}.pth'
                 torch.save(agent.qnetwork_local.state_dict(), checkpath)
                 print(f"Checkpoint saved at {checkpath}")
                 break
-        end = time.time()
         result_dict[agent_name] = {
                         "scores":scores,
                         "clocktime":round((end-start)/60,2)
                         }
-        pklpath = CHART_PATH + f"ResultDict-{label}-{timestamp}.pkl"
+        pklpath = CHART_PATH + f"ResultDict-{timestamp}-{label}-{agent_name}.pkl"
         with open(pklpath, 'wb') as handle:
             pickle.dump(result_dict, handle)
         print(f"Scores pickled at {pklpath}")
@@ -525,6 +528,7 @@ def chart_results(CHART_PATH, pklfile):
 
 def train_envs(PATH, CHART_PATH, CHECKPOINT_PATH, timestamp, env_dict, seed=0,
                n_episodes=3000,max_t=1000,eps_start=0.4,eps_end=0.01,eps_decay=0.995):
+    rd = {}
     for k,v in env_dict.items():
         start = time.time()
         module = k
