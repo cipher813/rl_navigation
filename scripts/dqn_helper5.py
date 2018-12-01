@@ -1,6 +1,8 @@
 """
 Deep Q Network helper file.
 Udacity Deep Reinforcement Learning Nanodegree, December 2018.
+
+Note that unityagents and gym are called only when specified in the run function.
 """
 import re
 import time
@@ -11,9 +13,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from collections import namedtuple, deque
-#from unityagents import UnityEnvironment
-
-#import gym
 
 import torch
 import torch.nn as nn
@@ -32,8 +31,10 @@ SEED = 0
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class QNetwork(nn.Module):
-    """Actor (Policy) Model."""
-
+    """
+    Actor (Policy) Model.
+    Inspired by code from https://github.com/udacity/deep-reinforcement-learning/tree/master/dqn/
+    """
     def __init__(self, state_size, action_size, seed, fc1_units=64, fc2_units=64):
         """Initialize parameters and build model.
         Params
@@ -57,8 +58,10 @@ class QNetwork(nn.Module):
         return self.fc3(x)
 
 class ReplayBuffer:
-    """Fixed-size buffer to store experience tuples."""
-
+    """
+    Fixed-size buffer to store experience tuples.
+    Inspired by code from https://github.com/udacity/deep-reinforcement-learning/tree/master/dqn/
+    """
     def __init__(self, action_size, batch_size, seed, buffer_size=BUFFER_SIZE):
         """Initialize a ReplayBuffer object.
 
@@ -97,8 +100,10 @@ class ReplayBuffer:
         return len(self.memory)
 
 class PriorityReplayBuffer(ReplayBuffer):
-    """Fixed-size buffer to store experience tuples."""
-
+    """
+    Fixed-size buffer to store experience tuples.
+    Inspired by code from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
+    """
     def __init__(self, action_size, batch_size, seed, buffer_size=BUFFER_SIZE):
         super().__init__(action_size, batch_size, seed, buffer_size=BUFFER_SIZE)
         """
@@ -144,9 +149,8 @@ class PriorityReplayBuffer(ReplayBuffer):
 class Vanilla:
     """
     Interacts with and learns from the environment.
-    Inspired by code from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
+    Inspired by code from https://github.com/udacity/deep-reinforcement-learning/tree/master/dqn/
     """
-
     def __init__(self, state_size, action_size, seed,buffer_size=BUFFER_SIZE,
                  batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR,update_every=UPDATE_EVERY):
         """Initialize an Agent object.
@@ -254,7 +258,6 @@ class Double(Vanilla):
     Interacts with and learns from the environment.
     Inspired by code from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
     """
-
     def __init__(self, state_size, action_size, seed,buffer_size=BUFFER_SIZE,
                  batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR,update_every=UPDATE_EVERY):
         super().__init__(state_size, action_size, seed,buffer_size=BUFFER_SIZE,
@@ -295,7 +298,6 @@ class PriorityReplay(Double):
     Interacts with and learns from the environment.
     Inspired by code from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
     """
-
     def __init__(self, state_size, action_size, seed,buffer_size=BUFFER_SIZE,
                  batch_size=BATCH_SIZE, gamma=GAMMA, lr=LR,update_every=UPDATE_EVERY):
         super().__init__(state_size, action_size, seed,buffer_size=BUFFER_SIZE,
@@ -377,6 +379,7 @@ class Dueling(PriorityReplay):
 
 def train_gym(CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, score_target,
               n_episodes,max_t,eps_start,eps_end,eps_decay): #agent_dict,
+    """Trains OpenAI Gym environments."""
     import gym
     start = time.time()
     label = "gym"
@@ -434,6 +437,7 @@ def train_gym(CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, 
 
 def train_unity(APP_PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, timestamp, seed, score_target,
                 n_episodes,max_t,eps_start,eps_end,eps_decay):
+    """Trains Unity 3D Editor environments."""
     from unityagents import UnityEnvironment
     label = "unity"
     start = time.time()
@@ -496,6 +500,7 @@ def train_unity(APP_PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, timestamp, se
     return result_dict
 
 def chart_results(CHART_PATH, pklfile):
+    """Charts performance results by agent."""
     pklpath = CHART_PATH + pklfile
     timestamp = pklpath.split(".")[-2].split("-")[-1]
 
@@ -528,6 +533,7 @@ def chart_results(CHART_PATH, pklfile):
 
 def train_envs(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, timestamp, env_dict, seed=0,
                n_episodes=3000,max_t=1000,eps_start=0.4,eps_end=0.01,eps_decay=0.995):
+    """Main trian function for all envs in env_dict."""
     rd = {}
     for k,v in env_dict.items():
         start = time.time()
