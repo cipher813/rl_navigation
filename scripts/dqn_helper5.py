@@ -493,11 +493,11 @@ def train_gym(CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, 
         print(f"Scores pickled at {pklpath}")
     return result_dict
 
-def train_unity(CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, score_target,
+def train_unity(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, score_target,
                 n_episodes,max_t,eps_start,eps_end,eps_decay):
     """Trains Unity 3D Editor environments."""
     from unityagents import UnityEnvironment
-    APP_PATH = PATH + f"data/{module.split('_')[0]}" # select app whether or not suffice is "_Linux"
+    APP_PATH = PATH + f"data/{module}"
     label = "unity"
     start = time.time()
     env = UnityEnvironment(file_name=APP_PATH)
@@ -599,7 +599,7 @@ def train_envs(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, timestamp, env_dic
             results = train_gym(CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, score_target,
                             n_episodes,max_t,eps_start,eps_end,eps_decay)
         elif platform == "unity":
-            results = train_unity(CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, score_target,
+            results = train_unity(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, score_target,
                           n_episodes,max_t,eps_start,eps_end,eps_decay)
         else:
             print("Check your model and platform inputs.")
