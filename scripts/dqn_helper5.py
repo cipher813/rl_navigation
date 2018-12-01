@@ -380,7 +380,7 @@ class Dueling(PriorityReplay):
 class A3C(Dueling):
     """Inspired by code at https://github.com/ikostrikov/pytorch-a3c/blob/master/model.py."""
     def __init__(self, state_size, action_size, seed):
-        super(ActorCritic, self).__init__(state_size, action_size, seed)
+        super(A3C, self).__init__(state_size, action_size, seed)
         self.conv1 = nn.Conv2d(state_size, 32, 3, stride=2, padding=1)
         self.conv2 = nn.Conv2d(32, 32, 3, stride=2, padding=1)
         self.conv3 = nn.Conv2d(32, 32, 3, stride=2, padding=1)
@@ -392,18 +392,18 @@ class A3C(Dueling):
         self.critic_linear = nn.Linear(256, 1)
         self.actor_linear = nn.Linear(256, action_size)
 
-        self.apply(weights_init)
-        self.actor_linear.weight.data = normalized_columns_initializer(
+        self.weights_init()
+        self.actor_linear.weight.data = self.normalized_columns_initializer(
             self.actor_linear.weight.data, 0.01)
         self.actor_linear.bias.data.fill_(0)
-        self.critic_linear.weight.data = normalized_columns_initializer(
+        self.critic_linear.weight.data = self.normalized_columns_initializer(
             self.critic_linear.weight.data, 1.0)
         self.critic_linear.bias.data.fill_(0)
 
         self.lstm.bias_ih.data.fill_(0)
         self.lstm.bias_hh.data.fill_(0)
 
-        self.train()
+#        self.train()
 
     def forward(self, inputs):
         inputs, (hx, cx) = inputs
@@ -418,12 +418,13 @@ class A3C(Dueling):
 
         return self.critic_linear(x), self.actor_linear(x), (hx, cx)
 
-    def normalized_columns_initializer(weights, std=1.0):
+    def normalized_columns_initializer(self, weights, std=1.0):
         out = torch.randn(weights.size())
         out *= std / torch.sqrt(out.pow(2).sum(1, keepdim=True))
         return out
 
-    def weights_init(m):
+    def weights_init(self):
+        m = self
         classname = m.__class__.__name__
         if classname.find('Conv') != -1:
             weight_shape = list(m.weight.data.size())
