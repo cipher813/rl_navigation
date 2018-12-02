@@ -6,7 +6,8 @@ Brian McMahon
 December 2018
 """
 
-from dqn_helper6 import *
+# from dqn_helper6 import *
+from util import train_gym, train_unity, train_envs, chart_results
 
 import re
 import datetime
@@ -34,7 +35,7 @@ env_dict = {
 
             # unity, for mac
             "Banana.app":["unity",13.0],
-#             "VisualBanana.app":["unity",13.0],
+            # "VisualBanana.app":["unity",13.0],
 
             # OpenAI Gym
             "LunarLander-v2":["gym",200.0],
@@ -43,6 +44,7 @@ env_dict = {
             }
 
 agent_dict = {
+              # "Rainbow":Rainbow,
               "A3C":A3C,
               "Dueling":Dueling,
               "PriorityReplay":PriorityReplay,
