@@ -1,6 +1,9 @@
 """
-Deep Q Network helper file.
-Udacity Deep Reinforcement Learning Nanodegree, December 2018.
+Deep Q Network (DQN) helper file.
+Project 1: Navigation
+Udacity Deep Reinforcement Learning Nanodegree
+Brian McMahon
+December 2018
 
 Note that unityagents and gym are called only when specified in the run function.
 """
@@ -58,15 +61,15 @@ class ReplayBuffer:
     Fixed size buffer to store experience tuples.
     Inspired by code from https://github.com/udacity/deep-reinforcement-learning/tree/master/dqn/
     """
-    def __init__(self, acts, bs, seed, buffer_size=buf_sz):
+    def __init__(self, acts, bs, seed, buf_sz=buf_sz):
         """
         acts (int): Dimension of action
         bs (int): Size of each training batch
         seed (int): Random seed
-        buffer_size (int): maximum size of buffer
+        buf_sz (int): maximum size of buffer
         """
         self.acts = acts
-        self.memory = deque(maxlen=buffer_size)
+        self.memory = deque(maxlen=buf_sz)
         self.bs = bs
         self.experience = namedtuple("Experience",field_names=["state","action","reward","next_state","done"])
         self.seed = random.seed(seed)
@@ -77,15 +80,15 @@ class ReplayBuffer:
         self.memory.append(e)
 
     def sample(self, alpha, b):
-        """Randomly sample a batch of experiences from memory"""
-        experiences = random.sample(self.memory, k=self.bs)
+        """Randomly sample a batch of expers from memory"""
+        expers = random.sample(self.memory, k=self.bs)
 
-        states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(device)
-        actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).long().to(device)
-        rewards = torch.from_numpy(np.vstack([e.reward for e in experiences if e is not None])).float().to(device)
-        next_states = torch.from_numpy(np.vstack([e.next_state for e in experiences if e is not None])).float().to(device)
-        dones = torch.from_numpy(np.vstack([e.done for e in experiences if e is not None]).astype(np.uint8)).float().to(device)
-        return (states, actions, rewards, next_states, dones)
+        sts = torch.from_numpy(np.vstack([e.state for e in expers if e is not None])).float().to(device)
+        acts = torch.from_numpy(np.vstack([e.action for e in expers if e is not None])).long().to(device)
+        rwds = torch.from_numpy(np.vstack([e.reward for e in expers if e is not None])).float().to(device)
+        nxt_sts = torch.from_numpy(np.vstack([e.next_state for e in expers if e is not None])).float().to(device)
+        dns = torch.from_numpy(np.vstack([e.done for e in expers if e is not None]).astype(np.uint8)).float().to(device)
+        return (sts, acts, rwds, nxt_sts, dns)
 
     def __len__(self):
         """Return current size of internal memory"""
@@ -96,10 +99,10 @@ class PriorityReplayBuffer(ReplayBuffer):
     Fixed-size buffer to store experience tuples
     Inspired by code from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
     """
-    def __init__(self, acts, bs, seed, buffer_size=buf_sz):
+    def __init__(self, acts, bs, seed, buf_sz=buf_sz):
         """Prioritizes experience replay buffer to store experience tuples"""
-        super(PriorityReplayBuffer, self).__init__()
-        # super().__init__(acts, bs, seed, buffer_size=buf_sz)
+        super(PriorityReplayBuffer, self).__init__(acts, bs, seed)
+        # super().__init__(acts, bs, seed, buf_sz=buf_sz)
         self.experience = namedtuple("Experience",field_names=["state","action","reward","next_state","done","priority"])
 
     def add(self, state, action, reward, next_state, done):
@@ -109,29 +112,29 @@ class PriorityReplayBuffer(ReplayBuffer):
         self.memory.append(e)
 
     def sample(self, alpha, b):
-        """Randomly sample a batch of experiences from memory"""
+        """Randomly sample a batch of expers from memory"""
         priorities = np.array([sample.priority for sample in self.memory])
         probs = priorities ** alpha
         probs /= probs.sum()
 
-        indices = np.random.choice(len(self.memory),self.bs, replace=False, p=probs)
-        experiences = [self.memory[idx] for idx in indices]
+        idxs = np.random.choice(len(self.memory),self.bs, replace=False, p=probs)
+        expers = [self.memory[idx] for idx in idxs]
         total = len(self.memory)
-        weights = (total*probs[indices])**(-b)
-        weights /= weights.max()
-        weights = np.array(weights, dtype=np.float32)
+        wts = (total*probs[idxs])**(-b)
+        wts /= wts.max()
+        wts = np.array(wts, dtype=np.float32)
 
-        states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(device)
-        actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).long().to(device)
-        rewards = torch.from_numpy(np.vstack([e.reward for e in experiences if e is not None])).float().to(device)
-        next_states = torch.from_numpy(np.vstack([e.next_state for e in experiences if e is not None])).float().to(device)
-        dones = torch.from_numpy(np.vstack([e.done for e in experiences if e is not None]).astype(np.uint8)).float().to(device)
-        weights = torch.from_numpy(np.vstack(weights)).float().to(device)
-        indices = torch.from_numpy(np.vstack(indices)).long().to(device)
-        return (states, actions, rewards, next_states, dones, weights, indices)
+        sts = torch.from_numpy(np.vstack([e.state for e in expers if e is not None])).float().to(device)
+        acts = torch.from_numpy(np.vstack([e.action for e in expers if e is not None])).long().to(device)
+        rwds = torch.from_numpy(np.vstack([e.reward for e in expers if e is not None])).float().to(device)
+        nxt_sts = torch.from_numpy(np.vstack([e.next_state for e in expers if e is not None])).float().to(device)
+        dns = torch.from_numpy(np.vstack([e.done for e in expers if e is not None]).astype(np.uint8)).float().to(device)
+        wts = torch.from_numpy(np.vstack(wts)).float().to(device)
+        idxs = torch.from_numpy(np.vstack(idxs)).long().to(device)
+        return (sts, acts, rwds, nxt_sts, dns, wts, idxs)
 
-    def update_priorities(self,indices,priorities):
-        for i, idx in enumerate(indices):
+    def update_priorities(self,idxs,priorities):
+        for i, idx in enumerate(idxs):
             self.memory[idx] = self.memory[idx]._replace(priority=priorities[i])
 
 class Vanilla:
@@ -139,8 +142,8 @@ class Vanilla:
     Base agent which interacts with an learns from environment
     Inspired by code from https://github.com/udacity/deep-reinforcement-learning/tree/master/dqn/
     """
-    def __init__(self, ss, acts, seed, buffer_size=buf_sz,
-                 bs=bs, g=g, lr=lr, update_freq=fq):
+    def __init__(self, ss, acts, seed, buf_sz=buf_sz,
+                 bs=bs, g=g, lr=lr, update_fq=fq):
         """
         ss (int): Dimension of state
         acts (int): Dimension of action
@@ -149,11 +152,11 @@ class Vanilla:
         self.ss = ss
         self.acts = acts
         self.seed = random.seed(seed)
-        self.buffer_size = int(buffer_size)
+        self.buf_sz = int(buf_sz)
         self.bs = bs
         self.g = g
         self.lr = lr
-        self.update_freq = update_fq
+        self.update_fq = update_fq
 
         # Q Network
         self.qnetwork_local = QNetwork(ss, acts, seed).to(device)
@@ -173,11 +176,11 @@ class Vanilla:
         if self.t_step == 0:
             # if enough samples available in memory, get random subset and learn
             if len(self.memory)> bs:
-                experiences = self.memory.sample(a, b)
-                self.learn(experiences, g)
+                expers = self.memory.sample(a, b)
+                self.learn(expers, g)
 
     def act(self, state, e=0.):
-        """Return actions for given state per current policy
+        """Return acts for given state per current policy
         state (arr): current state
         e (float): epsilon for e-greedy action selection
         """
@@ -193,24 +196,24 @@ class Vanilla:
         else:
             return random.choice(np.arange(self.acts))
 
-    def learn(self, experiences, g):
+    def learn(self, expers, g):
         """Update value params using given batch of experience tuples
-        experiences (Tuple[torch.Tensor]): tuple of (s, a, r, s', done)
+        expers (Tuple[torch.Tensor]): tuple of (s, a, r, s', done)
         g (float): discount factor
         """
-        states, actions, rewards, next_states, dones = experiences
+        sts, acts, rwds, nxt_sts, dns = expers
 
-        # get max predicted Q values (for next states) from target model
-        Q_targets_next = self.qnetwork_target(next_states).detach().max(1)[0].unsqueeze(1)
+        # get max predicted Q values (for next sts) from target model
+        Q_tgts_nxt = self.qnetwork_target(nxt_sts).detach().max(1)[0].unsqueeze(1)
 
-        # compute Q targets for current states
-        Q_targets = rewards + (g * Q_targets_next * (1 - dones))
+        # compute Q targets for current sts
+        Q_tgts = rwds + (g * Q_tgts_nxt * (1 - dns))
 
         # get expected Q values from local model
-        Q_expected = self.qnetwork_local(states).gather(1,actions)
+        Q_expd = self.qnetwork_local(sts).gather(1,acts)
 
         # compute loss
-        loss = F.mse_loss(Q_expected, Q_targets)
+        loss = F.mse_loss(Q_expd, Q_tgts)
 
         # minimize loss
         self.optimizer.zero_grad()
@@ -232,131 +235,86 @@ class Vanilla:
             target_param.data.copy_(t*local_param.data + (1.0-t)*target_param.data)
 
 class Double(Vanilla):
-    def __init__(self, ss, acts, seed, buffer_size=buf_sz,
-                 bs=bs,g=g,lr=lr,update_freq=fq):
-        super().__init__(ss, acts, seed, buffer_size=buf_sz,
-                     bs=bs,g=g,lr=lr,update_freq=fq)
+    """
+    Interacts with and learns from environment
+    Inspired by code from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
+    """
+    def __init__(self, ss, acts, seed, buf_sz=buf_sz,
+                 bs=bs,g=g,lr=lr,update_fq=fq):
+        super(Double, self).__init__(ss, acts, seed)
 
-    def learn(self, experiences, g):
-        states, actions, rewards, next_states, dones = experiences
-        local_max_actions = self.qnetwork_local(next_states).detach().max(1)[1].unsqueeze(1)
-        Q_targets_next = torch.gather(self.qnetwork_target(next_states).detach(),1,local_max_actions)
-        Q_targets = rewards + (g * Q_targets_next * (1-dones))
-        Q_expected = self.qnetwork_local(states).gather(1,actions)
+    def learn(self, expers, g):
+        """
+        Update value params using given batch of experience tuples
+        expers (Tuple[torch.Tensor]): tuple of (s, a, r, s', done) tuples
+        g (float): discount factor
+        """
+        sts, acts, rwds, nxt_sts, dns = expers
+        local_max_acts = self.qnetwork_local(nxt_sts).detach().max(1)[1].unsqueeze(1)
 
-        loss = F.mse_loss(Q_expected, Q_targets)
+        # get max predicted Q values (for next states) from target model
+        Q_tgts_nxt = torch.gather(self.qnetwork_target(nxt_sts).detach(),1,local_max_acts)
+
+        # compute Q targets for current states
+        Q_tgts = rwds + (g * Q_tgts_nxt * (1-dns))
+
+        # get expected Q values from local model
+        Q_expd = self.qnetwork_local(sts).gather(1,acts)
+
+        # compute loss
+        loss = F.mse_loss(Q_expd, Q_tgts)
+
+        # minimize loss
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+
+        # udpate target network
         self.soft_update(self.qnetwork_local, self.qnetwork_target,t)
-# class Double(Vanilla):
-#     """
-#     Interacts with and learns from the environment.
-#     Inspired by code from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
-#     """
-#     def __init__(self, ss, acts, seed,buffer_size=buf_sz,
-#                  bs=bs, g=g, lr=lr,update_every=UPDATE_EVERY):
-#         super().__init__(ss, acts, seed,buffer_size=buf_sz,
-#                  bs=bs, g=g, lr=lr,update_every=UPDATE_EVERY)
-#
-#     def learn(self, experiences, g):
-#         """Update value parameters using given batch of experience tuples.
-#
-#         Params
-#         ======
-#             experiences (Tuple[torch.Tensor]): tuple of (s, a, r, s', done) tuples
-#             g (float): discount factor
-#         """
-#         states, actions, rewards, next_states, dones = experiences
-#
-#         local_max_actions = self.qnetwork_local(next_states).detach().max(1)[1].unsqueeze(1)
-#         # Get max predicted Q values (for next states) from target model
-#         Q_targets_next = torch.gather(self.qnetwork_target(next_states).detach(),1,local_max_actions)
-# #         Q_targets_next = self.qnetwork_target(next_states).detach().max(1)[0].unsqueeze(1)
-#         # Compute Q targets for current states
-#         Q_targets = rewards + (g * Q_targets_next * (1 - dones))
-#
-#         # Get expected Q values from local model
-#         Q_expected = self.qnetwork_local(states).gather(1, actions)
-#
-#         # Compute loss
-#         loss = F.mse_loss(Q_expected, Q_targets)
-#         # Minimize the loss
-#         self.optimizer.zero_grad()
-#         loss.backward()
-#         self.optimizer.step()
-#
-#         # ------------------- update target network ------------------- #
-#         self.soft_update(self.qnetwork_local, self.qnetwork_target, t)
 #
 class PriorityReplay(Double):
-    def __init__(self, ss, acts, seed, buffer_size=buf_sz,
-                 bs=bs, g=g, lr=lr, update_freq=fq):
-        super().__init__(ss, acts, seed, buffer_size=buf_sz,
-                     bs=bs, g=g, lr=lr, update_freq=fq)
+    """
+    Interacts with and learns from environment
+    Inspired by code from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
+    """
+    def __init__(self, ss, acts, seed, buf_sz=buf_sz,
+                 bs=bs, g=g, lr=lr, update_fq=fq):
+        super(PriorityReplay,self).__init__(ss, acts, seed)
         self.memory = PriorityReplayBuffer(acts, bs, seed)
 
-    def learn(self, experiences, g):
-        states, actions, rewards, next_states, dones, weights, indices = experiences
-        local_max_actions = self.qnetwork_local(next_states).detach().max(1)[1].unsqueeze(1)
-        Q_targets_next = torch.gather(self.qnetwork_target(next_states).detach(),1,local_max_actions)
-        Q_targets = rewards + (g * Q_targets_next * (1-dones))
-        Q_expected = self.qnetwork_local(states).gather(1,actions)
-        loss = (Q_expected - Q_targets).pow(2)*weights
+    def learn(self, expers, g):
+        """
+        Update value params using given batch of experience tuples
+        expers (Tuple[torch.Tensor]): tuple of (s, a, r, s', done) tuples
+        g (float): gamma discount factor
+        """
+        sts, acts, rwds, nxt_sts, dns, wts, idxs = expers
+        local_max_acts = self.qnetwork_local(nxt_sts).detach().max(1)[1].unsqueeze(1)
+
+        # get max predicted Q values (for next states) from target model
+        Q_tgts_nxt = torch.gather(self.qnetwork_target(nxt_sts).detach(),1,local_max_acts)
+
+        # compute Q targets for current states
+        Q_tgts = rwds + (g * Q_tgts_nxt * (1-dns))
+
+        # Get expected Q values from local model
+        Q_expd = self.qnetwork_local(sts).gather(1,acts)
+
+        # compute loss
+        loss = (Q_expd - Q_tgts).pow(2)*wts
         prios = loss + 1e-5
         loss = loss.mean()
+
+        # minimize loss
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
-        self.memory.update_priorities(indices.sqeeze().to("cpu").data.numpy(),prios.squeeze().to("cpu").data.numpy())
+
+        # update priorities based on td error
+        self.memory.update_priorities(idxs.squeeze().to("cpu").data.numpy(),prios.squeeze().to("cpu").data.numpy())
+
+        # update target network
         self.soft_update(self.qnetwork_local,self.qnetwork_target,t)
-# class PriorityReplay(Double):
-#     """
-#     Interacts with and learns from the environment.
-#     Inspired by code from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
-#     """
-#     def __init__(self, ss, acts, seed,buffer_size=buf_sz,
-#                  bs=bs, g=g, lr=lr,update_every=UPDATE_EVERY):
-#         super().__init__(ss, acts, seed,buffer_size=buf_sz,
-#                  bs=bs, g=g, lr=lr,update_every=UPDATE_EVERY)
-#
-#         self.memory = PriorityReplayBuffer(acts, bs, seed)
-#
-#     def learn(self, experiences, g):
-#         """Update value parameters using given batch of experience tuples.
-#
-#         Params
-#         ======
-#             experiences (Tuple[torch.Tensor]): tuple of (s, a, r, s', done) tuples
-#             g (float): discount factor
-#         """
-#         states, actions, rewards, next_states, dones, weights, indices = experiences
-#
-#         local_max_actions = self.qnetwork_local(next_states).detach().max(1)[1].unsqueeze(1)
-#         # Get max predicted Q values (for next states) from target model
-#         Q_targets_next = torch.gather(self.qnetwork_target(next_states).detach(),1,local_max_actions)
-# #         Q_targets_next = self.qnetwork_target(next_states).detach().max(1)[0].unsqueeze(1)
-#         # Compute Q targets for current states
-#         Q_targets = rewards + (g * Q_targets_next * (1 - dones))
-#
-#         # Get expected Q values from local model
-#         Q_expected = self.qnetwork_local(states).gather(1, actions)
-#
-#         # Compute loss
-#         loss = (Q_expected - Q_targets).pow(2)*weights
-#         prios = loss + 1e-5
-#         loss = loss.mean()
-# #         loss = F.mse_loss(Q_expected, Q_targets)
-#         # Minimize the loss
-#         self.optimizer.zero_grad()
-#         loss.backward()
-#         self.optimizer.step()
-#
-#         # update priorities based on td error
-#         self.memory.update_priorities(indices.squeeze().to("cpu").data.numpy(),prios.squeeze().to("cpu").data.numpy())
-#
-#         # ------------------- update target network ------------------- #
-#         self.soft_update(self.qnetwork_local, self.qnetwork_target, t)
 
 class Dueling(PriorityReplay):
     """Inspired by code at https://github.com/dxyang/DQN_pytorch/blob/master/model.py."""
@@ -409,7 +367,7 @@ class A3C(Dueling):
         self.critic_linear = nn.Linear(256, 1)
         self.actor_linear = nn.Linear(256, acts)
 
-        self.weights_init()
+        self.wts_init()
         self.actor_linear.weight.data = self.normalized_columns_initializer(
             self.actor_linear.weight.data, 0.01)
         self.actor_linear.bias.data.fill_(0)
@@ -435,12 +393,12 @@ class A3C(Dueling):
 
         return self.critic_linear(x), self.actor_linear(x), (hx, cx)
 
-    def normalized_columns_initializer(self, weights, std=1.0):
-        out = torch.randn(weights.size())
+    def normalized_columns_initializer(self, wts, std=1.0):
+        out = torch.randn(wts.size())
         out *= std / torch.sqrt(out.pow(2).sum(1, keepdim=True))
         return out
 
-    def weights_init(self):
+    def wts_init(self):
         m = self
         classname = m.__class__.__name__
         if classname.find('Conv') != -1:
@@ -569,6 +527,34 @@ def train_unity(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp
         print(f"Scores pickled at {pklpath}")
     return result_dict
 
+def train_envs(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, timestamp, env_dict, seed=0,
+               n_episodes=3000,max_t=1000,e_start=0.4,e_end=0.01,e_decay=0.995):
+    """Main trian function for all envs in env_dict."""
+    rd = {}
+    for k,v in env_dict.items():
+        start = time.time()
+        module = k
+        platform = v[0]
+        print(f"Begin training {module}-{platform}.")
+        score_target = v[1]
+        print(f"Module: {module}-{platform}")
+        if platform == "gym":
+            results = train_gym(CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, score_target,
+                            n_episodes,max_t,e_start,e_end,e_decay)
+        elif platform == "unity":
+            results = train_unity(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, score_target,
+                          n_episodes,max_t,e_start,e_end,e_decay)
+        else:
+            print("Check your model and platform inputs.")
+        rd[module] = results
+        end = time.time()
+        print(f"Finished training {module}-{platform} in {(end-start)/60:.2f} minutes.")
+    pklpath = CHART_PATH + f"ResultDict-All-{timestamp}.pkl"
+    with open(pklpath, 'wb') as handle:
+        pickle.dump(rd, handle)
+        print(f"Scores pickled at {pklpath}")
+    return rd
+
 def chart_results(CHART_PATH, pklfile):
     """Charts performance results by agent."""
     pklpath = CHART_PATH + pklfile
@@ -600,31 +586,3 @@ def chart_results(CHART_PATH, pklfile):
     plt.show()
     display(pd.DataFrame(results))
     return results
-
-def train_envs(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, timestamp, env_dict, seed=0,
-               n_episodes=3000,max_t=1000,e_start=0.4,e_end=0.01,e_decay=0.995):
-    """Main trian function for all envs in env_dict."""
-    rd = {}
-    for k,v in env_dict.items():
-        start = time.time()
-        module = k
-        platform = v[0]
-        print(f"Begin training {module}-{platform}.")
-        score_target = v[1]
-        print(f"Module: {module}-{platform}")
-        if platform == "gym":
-            results = train_gym(CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, score_target,
-                            n_episodes,max_t,e_start,e_end,e_decay)
-        elif platform == "unity":
-            results = train_unity(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, score_target,
-                          n_episodes,max_t,e_start,e_end,e_decay)
-        else:
-            print("Check your model and platform inputs.")
-        rd[module] = results
-        end = time.time()
-        print(f"Finished training {module}-{platform} in {(end-start)/60:.2f} minutes.")
-    pklpath = CHART_PATH + f"ResultDict-All-{timestamp}.pkl"
-    with open(pklpath, 'wb') as handle:
-        pickle.dump(rd, handle)
-        print(f"Scores pickled at {pklpath}")
-    return rd
