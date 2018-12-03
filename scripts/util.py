@@ -4,15 +4,26 @@ Project 1: Navigation
 Udacity Deep Reinforcement Learning Nanodegree
 Brian McMahon
 December 2018
-
-Note that unityagents and gym are called only when specified in the run function.
 """
-# from network import *
 from agent import Vanilla, Double, PriorityReplay, Dueling, A3C, Rainbow
+
+import re
+import time
+import math
+import pickle
+import random
+import datetime
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from collections import namedtuple, deque
 
 def train_gym(CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, score_target,
               n_episodes,max_t,e_start,e_end,e_decay): #agent_dict,
-    """Trains OpenAI Gym environments."""
+    """
+    Trains OpenAI Gym environments.
+    Note that unityagents and gym are called only when specified in the train functions.
+    """
     import gym
     start = time.time()
     label = "gym"
@@ -64,7 +75,10 @@ def train_gym(CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, 
 
 def train_unity(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, score_target,
                 n_episodes,max_t,e_start,e_end,e_decay):
-    """Trains Unity 3D Editor environments."""
+    """
+    Trains Unity 3D Editor environments.
+    Note that unityagents and gym are called only when specified in the train functions.
+    """
     from unityagents import UnityEnvironment
     APP_PATH = PATH + f"data/{module}"
     label = "unity"

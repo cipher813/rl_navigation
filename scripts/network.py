@@ -4,35 +4,15 @@ Project 1: Navigation
 Udacity Deep Reinforcement Learning Nanodegree
 Brian McMahon
 December 2018
-
-Note that unityagents and gym are called only when specified in the run function.
 """
-import re
-import time
-import math
-import pickle
-import random
-import datetime
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 from collections import namedtuple, deque
+
+import random
+import numpy as np
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
-from torch.autograd import Variable
-
-# hyperparameters
-lr = 0.00025        # learning rate
-buf_sz = int(1e5)   # replay buffer size
-bs = 64             # minibatch size
-a = 0.4             # alpha
-g = 0.99            # gamma, discount factor
-t = 1e-3            # tau, for soft update of target parameters
-fq = 4              # frequency, how often to update the network
-seed = 0            # seed
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -64,7 +44,7 @@ class ReplayBuffer:
     Fixed size buffer to store experience tuples.
     Inspired by code from https://github.com/udacity/deep-reinforcement-learning/tree/master/dqn/
     """
-    def __init__(self, acts, bs, seed, buf_sz=buf_sz):
+    def __init__(self, acts, bs, seed, buf_sz):
         """
         acts (int): Dimension of action
         bs (int): Size of each training batch
@@ -103,9 +83,9 @@ class PriorityReplayBuffer(ReplayBuffer):
     See paper "Prioritized Experience Replay" at https://arxiv.org/abs/1511.05952
     Inspired by code from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
     """
-    def __init__(self, acts, bs, seed, buf_sz=buf_sz):
+    def __init__(self, acts, bs, seed, buf_sz):
         """Prioritizes experience replay buffer to store experience tuples"""
-        super(PriorityReplayBuffer, self).__init__(acts, bs, seed)
+        super(PriorityReplayBuffer, self).__init__(acts, bs, seed, buf_sz)
         # super().__init__(acts, bs, seed, buf_sz=buf_sz)
         self.experience = namedtuple("Experience",field_names=["state","action","reward","next_state","done","priority"])
 

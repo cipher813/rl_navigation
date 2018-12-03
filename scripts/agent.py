@@ -1,6 +1,26 @@
 from network import QNetwork, ReplayBuffer, PriorityReplayBuffer, NoisyLinear
 
+import random
+import numpy as np
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torch.nn.functional as F
+from torch.autograd import Variable
+
+# hyperparameters
+lr = 0.00025        # learning rate
+buf_sz = int(1e5)   # replay buffer size
+bs = 64             # minibatch size
+a = 0.4             # alpha
+g = 0.99            # gamma, discount factor
+t = 1e-3            # tau, for soft update of target parameters
+fq = 4              # frequency, how often to update the network
+seed = 0            # seed
+
 USE_CUDA = torch.cuda.is_available()
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class Vanilla:
     """
@@ -17,7 +37,7 @@ class Vanilla:
         self.ss = ss
         self.acts = acts
         self.seed = random.seed(seed)
-        self.buf_sz = int(buf_sz)
+        self.buf_sz = buf_sz
         self.bs = bs
         self.g = g
         self.lr = lr
@@ -29,7 +49,7 @@ class Vanilla:
         self.optimizer = optim.Adam(self.qnetwork_local.parameters(),lr=lr)
 
         # Replay memory
-        self.memory = ReplayBuffer(acts, bs, seed)
+        self.memory = ReplayBuffer(acts, bs, seed, buf_sz)
         self.t_step = 0
 
     def step(self, state, action, reward, next_state, done, b=1.0):
@@ -148,7 +168,7 @@ class PriorityReplay(Double):
     def __init__(self, ss, acts, seed, buf_sz=buf_sz,
                  bs=bs, g=g, lr=lr, update_fq=fq):
         super(PriorityReplay,self).__init__(ss, acts, seed)
-        self.memory = PriorityReplayBuffer(acts, bs, seed)
+        self.memory = PriorityReplayBuffer(acts, bs, seed, buf_sz)
 
     def learn(self, expers, g):
         """

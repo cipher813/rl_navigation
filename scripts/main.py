@@ -5,9 +5,8 @@ Udacity Deep Reinforcement Learning Nanodegree
 Brian McMahon
 December 2018
 """
-
-# from dqn_helper6 import *
 from util import train_gym, train_unity, train_envs, chart_results
+from agent import Vanilla, Double, PriorityReplay, Dueling, A3C, Rainbow
 
 import re
 import datetime
