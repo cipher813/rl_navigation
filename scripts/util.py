@@ -18,6 +18,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from collections import namedtuple, deque
 
+import torch 
+
 def train_gym(CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, score_target,
               n_episodes,max_t,e_start,e_end,e_decay): #agent_dict,
     """

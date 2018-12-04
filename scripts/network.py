@@ -7,12 +7,14 @@ December 2018
 """
 from collections import namedtuple, deque
 
+import math
 import random
 import numpy as np
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.autograd import Variable
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 

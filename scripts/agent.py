@@ -315,7 +315,7 @@ class A3C(Dueling):
             m.weight.data.uniform_(-w_bound, w_bound)
             m.bias.data.fill_(0)
 
-class Rainbow(A3C):
+class Rainbow(Vanilla):
     """
     Implementation of rainbow DQN
     See paper "Rainbow: Combining Improvements in Deep Reinforcement Learning" at https://arxiv.org/abs/1710.02298
@@ -323,8 +323,8 @@ class Rainbow(A3C):
     """
     def __init__(self, ss, acts, seed, num_atoms, Vmin, Vmax):
         super(Rainbow,self).__init__(ss, acts, seed)
-        self.ss = ss
-        self.acts = acts
+        self.ss = ss                # state space
+        self.acts = acts            # action space
         self.num_atoms = num_atoms
         self.Vmin = Vmin
         self.Vmax = Vmax
@@ -361,7 +361,7 @@ class Rainbow(A3C):
         self.noisy_advantage1.reset_noise()
         self.noisy_advantage2.reset_noise()
 
-    def act(self, state,e=0.):
+    def act(self, state, e=0.):
         state = Variable(torch.FloatTensor(state).unsqueeze(0),volatile=True)
         dist = self.forward(state).data.cpu()
         dist = dist * torch.linspace(self.Vmin, self.Vmax, self.num_atoms)
