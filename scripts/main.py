@@ -12,8 +12,9 @@ import re
 import datetime
 
 # path information
-PATH = "/Volumes/BC_Clutch/Dropbox/DeepRLND/rl_navigation/" # for mac
+# PATH = "/Volumes/BC_Clutch/Dropbox/DeepRLND/rl_navigation/" # for mac
 # PATH = "/home/brianmcmahon/rl_navigation/" # for google cloud
+PATH = "/home/bcm822_gmail_com/rl_navigation/"
 CHART_PATH = PATH + "charts/"
 CHECKPOINT_PATH = PATH + "models/"
 
@@ -29,11 +30,11 @@ eps_decay=0.995
 rd = {}
 env_dict = {
             # unity, for google cloud
-            # "Banana_Linux_NoVis/Banana.x86_64":["unity",13.0],
+             "Banana_Linux_NoVis/Banana.x86_64":["unity",13.0],
 #            "VisualBanana_Linux_NoVis/Banana.x86_64":["unity",13.0],
 
             # unity, for mac
-            "Banana.app":["unity",13.0],
+#            "Banana.app":["unity",13.0],
             # "VisualBanana.app":["unity",13.0],
 
             # OpenAI Gym

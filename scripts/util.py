@@ -107,10 +107,10 @@ def train_unity(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp
             state = env.reset()
             score = 0
             for t in range(max_t):
-                state = env_info.vector_observations[0]  # get the current state
+                state = env_info.vector_observations[0]if "Visual" not in module else env_info.visual_observations[0]
                 action = agent.act(state,e)
                 env_info = env.step(action)[brain_name]        # send the action to the environment
-                next_state = env_info.vector_observations[0]   # get the next state
+                next_state = env_info.vector_observations[0] if "Visual" not in module else env_info.visual_observations[0]
                 reward = env_info.rewards[0]                   # get the reward
                 done = env_info.local_done[0]
                 agent.step(state, action, reward, next_state, done)

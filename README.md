@@ -1,3 +1,10 @@
+# Environment
+
+To set up the environment, in the root directory, type:
+
+`conda env update --file=environment_drlnd.yml`
+
+
 # TODO
 
 **Process**
