@@ -143,7 +143,7 @@ def train_unity(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp
                 # checkpath = CHECKPOINT_PATH + f'{timestamp}-checkpoint-{label}-{agent_name}.pth'
                 # torch.save(agent.qnetwork_local.state_dict(), checkpath)
                 # print(f"Checkpoint saved at {checkpath}")
-                save_checkpoint(CHECKPOINT_PATH, timestamp, label, module, agent_name)
+                save_checkpoint(agent, CHECKPOINT_PATH, timestamp, label, module, agent_name)
                 break
         result_dict[agent_name] = {
                         "scores":scores,
