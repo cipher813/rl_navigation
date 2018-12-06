@@ -13,7 +13,6 @@ import datetime
 
 # path information
 PATH = "/Volumes/BC_Clutch/Dropbox/DeepRLND/rl_navigation/" # for mac
-# PATH = "/home/brianmcmahon/rl_navigation/" # for google cloud
 # PATH = "/home/bcm822_gmail_com/rl_navigation/"
 CHART_PATH = PATH + "charts/"
 CHECKPOINT_PATH = PATH + "models/"

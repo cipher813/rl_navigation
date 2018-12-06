@@ -25,7 +25,7 @@ def save_checkpoint(agent, CHECKPOINT_PATH, timestamp, label, module, agent_name
     torch.save(agent.qnetwork_local.state_dict(), checkpath)
     print(f"Checkpoint saved at {checkpath}")
 
-def pickle_results(result_dict, timestamp, label, agent_name):
+def pickle_results(CHART_PATH, result_dict, timestamp, label, agent_name):
     pklpath = CHART_PATH + f"{timestamp}-ResultDict-{label}-{agent_name}.pkl"
     with open(pklpath, 'wb') as handle:
         pickle.dump(result_dict, handle)
@@ -70,7 +70,7 @@ def train_gym(CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, 
                 print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
             if np.mean(scores_window)>=score_target:
                 end = time.time()
-                print(f'Environment solved in {i_episode:d} episodes!\tAverage Score: {np.mean(scores_window):.2f}\tRuntime: {(end-start)/60:.2f}')
+                print(f'\nEnvironment solved in {i_episode:d} episodes!\tAverage Score: {np.mean(scores_window):.2f}\tRuntime: {(end-start)/60:.2f}')
                 # checkpath = CHECKPOINT_PATH + f'{timestamp}-checkpoint-{label}-{module}-{agent_name}.pth'
                 # torch.save(agent.qnetwork_local.state_dict(), checkpath)
                 # print(f"Checkpoint saved at {checkpath}")
@@ -85,7 +85,7 @@ def train_gym(CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, 
         # with open(pklpath, 'wb') as handle:
         #     pickle.dump(result_dict, handle)
         # print(f"Scores pickled at {pklpath}")
-        pickle_results(result_dict, timestamp, label, agent_name)
+        pickle_results(CHART_PATH, result_dict, timestamp, label, agent_name)
     return result_dict
 
 def train_unity(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, score_target,
@@ -139,7 +139,7 @@ def train_unity(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp
                 print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
             if np.mean(scores_window)>=score_target:
                 end = time.time()
-                print(f'Environment solved in {i_episode:d} episodes!\tAverage Score: {np.mean(scores_window):.2f}\tRuntime: {(end-start)/60:.2f}')
+                print(f'\nEnvironment solved in {i_episode:d} episodes!\tAverage Score: {np.mean(scores_window):.2f}\tRuntime: {(end-start)/60:.2f}')
                 # checkpath = CHECKPOINT_PATH + f'{timestamp}-checkpoint-{label}-{agent_name}.pth'
                 # torch.save(agent.qnetwork_local.state_dict(), checkpath)
                 # print(f"Checkpoint saved at {checkpath}")
@@ -153,7 +153,7 @@ def train_unity(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp
         # with open(pklpath, 'wb') as handle:
         #     pickle.dump(result_dict, handle)
         # print(f"Scores pickled at {pklpath}")
-        pickle_results(result_dict, timestamp, label, agent_name)
+        pickle_results(CHART_PATH, result_dict, timestamp, label, agent_name)
     return result_dict
 
 def train_envs(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, timestamp, env_dict, seed=0,
