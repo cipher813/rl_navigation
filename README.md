@@ -1,8 +1,89 @@
-# Environment
+# Overview
 
-To set up the environment, in the root directory, type:
+For [Project 1](https://github.com/udacity/deep-reinforcement-learning/tree/master/p1_navigation) of Udacity's [Deep Reinforcement Learning Nanodegree](https://github.com/udacity/deep-reinforcement-learning), we were tasked with teaching an agent to navigate a Unity environment where it must collect yellow bananas (reward +1) while avoiding blue bananas (reward -1).
+
+A Deep Q Network (DQN) is used in training the agent to solve the environment.  In this project, we implement the following versions of DQN:
+
+1. "Vanilla", or base implementation. This is based on DeepMind's research on ["Human-level control through deep reinforcement learning"](https://storage.googleapis.com/deepmind-media/dqn/DQNNaturePaper.pdf) (Nature, 26 February 2015)
+
+2. Double, which addresses the inherent overestimation of action values in the base case.  Research from Hasselt's ["Deep Reinforcement Learning with Double Q-learning"](https://arxiv.org/abs/1509.06461)(Arxiv, 8 December 2015).  *Class inherits from Vanilla.*
+
+3. Prioritized Experience Replay, which replays important episodes more frequently to learn more efficiently.  Research from Schaul's ["Prioritized Experience Replay"](https://arxiv.org/abs/1511.05952) (Arxiv, 25 February 2016) *Class inherits from Double.*
+
+4. Dueling, with a neural network architecture for model-free learning.  The dueling network reprsents two separate estimators, one fo the state value function and the other for the state-dependent action advantage function.  This generalizes learning across actions without imposing change to the underlying RL algorithm. Research from Wang's ["Dueling Network Architectures for Deep Reinforcement Learning"](https://arxiv.org/abs/1511.06581) (Arxiv, 5 April 2016) *Class inherits from Priority Replay.*
+
+5. A3C, which learns from multi-step bootstrap targets using "asynchronous gradient descent for optimization of deep neural network controllers".  Research from Mnih's ["Asynchronous Methods for Deep Reinforcement Learning"](https://arxiv.org/abs/1602.01783) (Arxiv, 16 June 2016) *Class inherits from Dueling.*
+
+Other popular implementations of the DQN algorithm that may be implemented into this project at a later date include:
+
+6. Distributional, which applies Bellman's equation to the learning of approximate value distributions (in contrast to solely modelling the value ie expectation of the return).  Research per Bellemare's ["A Distributional Perspective on Reinforcement Learning"](https://arxiv.org/abs/1707.06887) (Arxiv, 21 July 2017)
+
+7. Noisy, which adds parametric noise to the weights which can aid efficient exploration.  Research per Fortunato's ["Noisy Networks for Exploration"](https://arxiv.org/abs/1706.10295)(Arxiv, 15 February 2018)
+
+- Rainbow, which incorporates all of the above modifications.  Research per Hessel's ["Rainbow: Combining Improvements in Deep Reinforcement Learning"](https://arxiv.org/abs/1710.02298)(Arxiv, 6 October 2017)
+
+# The Reinforcement Learning (RL) Environment
+**TODO link to Environment Info**
+
+State space: 37
+
+Action space: 4
+
+The environment is considered solved once the agent is able to attain an average score of 13.0 over 100 episodes.  
+
+# The Model
+
+The key files in this repo include:
+
+### Scripts
+
+**network.py**
+
+
+**agent.py**
+
+
+**util.py**
+
+
+**main.py**
+
+To train the agent, in the command line run:
+
+`source activate drlnd` # to activate python (conda) environment
+`python main.py` # to train the agent
+
+
+### Notebooks
+
+**rln_results.ipynb**
+
+
+### Models
+
+Contains the model weights of each implementation.  
+
+**TODO: Add Report.md**
+- description of implementation
+- learning algorithm
+- chosen hyperparameters
+- model architectures for neural networks
+
+**TODO: Add plot of rewards per episode**
+
+
+# Environment Setup
+
+To set up the python (conda) environment, in the root directory, type:
 
 `conda env update --file=environment_drlnd.yml`
+
+This requires installation of [OpenAI Gym](https://github.com/openai/gym) and Unity's [ML-Agents](https://github.com/Unity-Technologies/ml-agents).
+
+To download the Unity environment for your OS, see the links on the [Udacity Project Description](https://github.com/udacity/deep-reinforcement-learning/tree/master/p1_navigation).    
+
+# Next Steps
+**TODO: add concrete future ideas for improving agent performance**
 
 
 # TODO
@@ -17,62 +98,3 @@ To set up the environment, in the root directory, type:
   - describe the environment solved
   - describe how to install the requirements before running code in repo
   - report describing the learning algo, including details of implementation and ideas for future work
-
-
-# From Udacity DRLND
-
-[//]: # (Image References)
-
-[image1]: https://user-images.githubusercontent.com/10624937/42135619-d90f2f28-7d12-11e8-8823-82b970a54d7e.gif "Trained Agent"
-
-# Project 1: Navigation
-
-### Introduction
-
-For this project, you will train an agent to navigate (and collect bananas!) in a large, square world.  
-
-![Trained Agent][image1]
-
-A reward of +1 is provided for collecting a yellow banana, and a reward of -1 is provided for collecting a blue banana.  Thus, the goal of your agent is to collect as many yellow bananas as possible while avoiding blue bananas.  
-
-The state space has 37 dimensions and contains the agent's velocity, along with ray-based perception of objects around agent's forward direction.  Given this information, the agent has to learn how to best select actions.  Four discrete actions are available, corresponding to:
-- **`0`** - move forward.
-- **`1`** - move backward.
-- **`2`** - turn left.
-- **`3`** - turn right.
-
-The task is episodic, and in order to solve the environment, your agent must get an average score of +13 over 100 consecutive episodes.
-
-### Getting Started
-
-1. Download the environment from one of the links below.  You need only select the environment that matches your operating system:
-    - Linux: [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/Banana_Linux.zip)
-    - Mac OSX: [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/Banana.app.zip)
-    - Windows (32-bit): [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/Banana_Windows_x86.zip)
-    - Windows (64-bit): [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/Banana_Windows_x86_64.zip)
-    
-    (_For Windows users_) Check out [this link](https://support.microsoft.com/en-us/help/827218/how-to-determine-whether-a-computer-is-running-a-32-bit-version-or-64) if you need help with determining if your computer is running a 32-bit version or 64-bit version of the Windows operating system.
-
-    (_For AWS_) If you'd like to train the agent on AWS (and have not [enabled a virtual screen](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Training-on-Amazon-Web-Service.md)), then please use [this link](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/Banana_Linux_NoVis.zip) to obtain the environment.
-
-2. Place the file in the DRLND GitHub repository, in the `p1_navigation/` folder, and unzip (or decompress) the file. 
-
-### Instructions
-
-Follow the instructions in `Navigation.ipynb` to get started with training your own agent!  
-
-### (Optional) Challenge: Learning from Pixels
-
-After you have successfully completed the project, if you're looking for an additional challenge, you have come to the right place!  In the project, your agent learned from information such as its velocity, along with ray-based perception of objects around its forward direction.  A more challenging task would be to learn directly from pixels!
-
-To solve this harder task, you'll need to download a new Unity environment.  This environment is almost identical to the project environment, where the only difference is that the state is an 84 x 84 RGB image, corresponding to the agent's first-person view.  (**Note**: Udacity students should not submit a project with this new environment.)
-
-You need only select the environment that matches your operating system:
-- Linux: [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/VisualBanana_Linux.zip)
-- Mac OSX: [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/VisualBanana.app.zip)
-- Windows (32-bit): [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/VisualBanana_Windows_x86.zip)
-- Windows (64-bit): [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/VisualBanana_Windows_x86_64.zip)
-
-Then, place the file in the `p1_navigation/` folder in the DRLND GitHub repository, and unzip (or decompress) the file.  Next, open `Navigation_Pixels.ipynb` and follow the instructions to learn how to use the Python API to control the agent.
-
-(_For AWS_) If you'd like to train the agent on AWS, you must follow the instructions to [set up X Server](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Training-on-Amazon-Web-Service.md), and then download the environment for the **Linux** operating system above.

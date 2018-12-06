@@ -2,7 +2,6 @@
 __pycache__/
 data/
 charts/
-models/
 archive/
 nohup.out
 unity-environment.log

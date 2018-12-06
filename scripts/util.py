@@ -18,7 +18,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from collections import namedtuple, deque
 
-import torch 
+import torch
+
+def save_checkpoint(agent, CHECKPOINT_PATH, timestamp, label, module, agent_name):
+    checkpath = CHECKPOINT_PATH + f'{timestamp}-checkpoint-{label}-{module}-{agent_name}.pth'
+    torch.save(agent.qnetwork_local.state_dict(), checkpath)
+    print(f"Checkpoint saved at {checkpath}")
+
+def pickle_results(result_dict, timestamp, label, agent_name):
+    pklpath = CHART_PATH + f"{timestamp}-ResultDict-{label}-{agent_name}.pkl"
+    with open(pklpath, 'wb') as handle:
+        pickle.dump(result_dict, handle)
+    print(f"Scores pickled at {pklpath}")
 
 def train_gym(CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, score_target,
               n_episodes,max_t,e_start,e_end,e_decay): #agent_dict,
@@ -60,19 +71,21 @@ def train_gym(CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, 
             if np.mean(scores_window)>=score_target:
                 end = time.time()
                 print(f'Environment solved in {i_episode:d} episodes!\tAverage Score: {np.mean(scores_window):.2f}\tRuntime: {(end-start)/60:.2f}')
-                checkpath = CHECKPOINT_PATH + f'checkpoint-{timestamp}-{label}-{module}-{agent_name}.pth'
-                torch.save(agent.qnetwork_local.state_dict(), checkpath)
-                print(f"Checkpoint saved at {checkpath}")
+                # checkpath = CHECKPOINT_PATH + f'{timestamp}-checkpoint-{label}-{module}-{agent_name}.pth'
+                # torch.save(agent.qnetwork_local.state_dict(), checkpath)
+                # print(f"Checkpoint saved at {checkpath}")
+                save_checkpoint(agent, CHECKPOINT_PATH, timestamp, label, module, agent_name)
                 break
         result_dict[agent_name] = {
                         "scores":scores,
                         "clocktime":round((end-start)/60,2)
                         }
-        pklpath = CHART_PATH + f"ResultDict-{timestamp}-{label}-{module}-{agent_name}.pkl"
-        # pklpath = CHART_PATH + f"ResultDict-{timestamp}-{label}-{module}.pkl"
-        with open(pklpath, 'wb') as handle:
-            pickle.dump(result_dict, handle)
-        print(f"Scores pickled at {pklpath}")
+        # pklpath = CHART_PATH + f"ResultDict-{timestamp}-{label}-{module}-{agent_name}.pkl"
+        # # pklpath = CHART_PATH + f"ResultDict-{timestamp}-{label}-{module}.pkl"
+        # with open(pklpath, 'wb') as handle:
+        #     pickle.dump(result_dict, handle)
+        # print(f"Scores pickled at {pklpath}")
+        pickle_results(result_dict, timestamp, label, agent_name)
     return result_dict
 
 def train_unity(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, score_target,
@@ -127,18 +140,20 @@ def train_unity(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp
             if np.mean(scores_window)>=score_target:
                 end = time.time()
                 print(f'Environment solved in {i_episode:d} episodes!\tAverage Score: {np.mean(scores_window):.2f}\tRuntime: {(end-start)/60:.2f}')
-                checkpath = CHECKPOINT_PATH + f'checkpoint-{timestamp}-{label}-{agent_name}.pth'
-                torch.save(agent.qnetwork_local.state_dict(), checkpath)
-                print(f"Checkpoint saved at {checkpath}")
+                # checkpath = CHECKPOINT_PATH + f'{timestamp}-checkpoint-{label}-{agent_name}.pth'
+                # torch.save(agent.qnetwork_local.state_dict(), checkpath)
+                # print(f"Checkpoint saved at {checkpath}")
+                save_checkpoint(CHECKPOINT_PATH, timestamp, label, module, agent_name)
                 break
         result_dict[agent_name] = {
                         "scores":scores,
                         "clocktime":round((end-start)/60,2)
                         }
-        pklpath = CHART_PATH + f"ResultDict-{timestamp}-{label}-{agent_name}.pkl"
-        with open(pklpath, 'wb') as handle:
-            pickle.dump(result_dict, handle)
-        print(f"Scores pickled at {pklpath}")
+        # pklpath = CHART_PATH + f"{timestamp}-ResultDict-{label}-{agent_name}.pkl"
+        # with open(pklpath, 'wb') as handle:
+        #     pickle.dump(result_dict, handle)
+        # print(f"Scores pickled at {pklpath}")
+        pickle_results(result_dict, timestamp, label, agent_name)
     return result_dict
 
 def train_envs(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, timestamp, env_dict, seed=0,
@@ -163,7 +178,7 @@ def train_envs(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, timestamp, env_dic
         rd[module] = results
         end = time.time()
         print(f"Finished training {module}-{platform} in {(end-start)/60:.2f} minutes.")
-    pklpath = CHART_PATH + f"ResultDict-All-{timestamp}.pkl"
+    pklpath = CHART_PATH + f"{timestamp}-ResultDict-All.pkl"
     with open(pklpath, 'wb') as handle:
         pickle.dump(rd, handle)
         print(f"Scores pickled at {pklpath}")
@@ -194,7 +209,7 @@ def chart_results(CHART_PATH, pklfile):
             plt.xlabel('Episode #')
             plt.title(f"{module}")
             plt.legend()
-        chartpath = CHART_PATH + f"NavigationTrainChart-{timestamp}-{module}-{key}.png"
+        chartpath = CHART_PATH + f"{timestamp}-NavigationTrainChart-{module}-{key}.png"
         plt.savefig(chartpath)
         print(f"Chart saved at {chartpath}")
     plt.show()
