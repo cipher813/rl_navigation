@@ -55,4 +55,4 @@ agent_dict = {
 rd = train_envs(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, timestamp, env_dict, seed,
                 n_episodes,max_t,eps_start,eps_end,eps_decay)
 
-results = chart_results(CHART_PATH, rd)
+#results = chart_results(CHART_PATH, rd)
