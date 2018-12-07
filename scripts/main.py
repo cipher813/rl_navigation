@@ -38,7 +38,7 @@ env_dict = {
 
             # OpenAI Gym
             "LunarLander-v2":["gym",200.0],
-            # "CartPole-v0":["gym",195.0],
+            "CartPole-v0":["gym",195.0],
             # "MountainCar-v0":["gym",-110],
             }
 

@@ -1,3 +1,22 @@
+# Reinforcement Learning Navigation
+## Project Report
+
+# TODO
+- description of implementation
+- learning algorithm
+- chosen hyperparameters
+- model architectures for neural networks
+- Add plot of rewards per episode
+
+# The Reinforcement Learning (RL) Environment
+**TODO link to Environment Info**
+
+State space: 37
+
+Action space: 4
+
+The environment is considered solved once the agent is able to attain an average score of 13.0 over 100 episodes.
+
 # The Algorithm
 
 A Deep Q Network (DQN) is used in training the agent to solve the environment.  In this project, we implement the following versions of DQN:
@@ -11,6 +30,8 @@ A Deep Q Network (DQN) is used in training the agent to solve the environment.  
 4. Dueling, with a neural network architecture for model-free learning.  The dueling network reprsents two separate estimators, one fo the state value function and the other for the state-dependent action advantage function.  This generalizes learning across actions without imposing change to the underlying RL algorithm. Research from Wang's ["Dueling Network Architectures for Deep Reinforcement Learning"](https://arxiv.org/abs/1511.06581) (Arxiv, 5 April 2016) *Class inherits from Priority Replay.*
 
 5. A3C, which learns from multi-step bootstrap targets using "asynchronous gradient descent for optimization of deep neural network controllers".  Research from Mnih's ["Asynchronous Methods for Deep Reinforcement Learning"](https://arxiv.org/abs/1602.01783) (Arxiv, 16 June 2016) *Class inherits from Dueling.*
+
+![alt text](https://github.com/cipher813/rl_navigation/blob/master/charts/RLTrainChart-201812021453-Banana_Linux_NoVisBanana.x86_64-Vanilla.png "Banana Results by Algorithm")
 
 
 # Next Steps

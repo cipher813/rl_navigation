@@ -1,7 +1,6 @@
 .ipynb_checkpoints/
 __pycache__/
 data/
-charts/
 archive/
 nohup.out
 unity-environment.log

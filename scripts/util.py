@@ -16,6 +16,7 @@ import datetime
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from IPython.display import display
 from collections import namedtuple, deque
 
 import torch
@@ -71,20 +72,12 @@ def train_gym(CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp, seed, 
             if np.mean(scores_window)>=score_target:
                 end = time.time()
                 print(f'\nEnvironment solved in {i_episode:d} episodes!\tAverage Score: {np.mean(scores_window):.2f}\tRuntime: {(end-start)/60:.2f}')
-                # checkpath = CHECKPOINT_PATH + f'{timestamp}-checkpoint-{label}-{module}-{agent_name}.pth'
-                # torch.save(agent.qnetwork_local.state_dict(), checkpath)
-                # print(f"Checkpoint saved at {checkpath}")
                 save_checkpoint(agent, CHECKPOINT_PATH, timestamp, label, module, agent_name)
                 break
         result_dict[agent_name] = {
                         "scores":scores,
                         "clocktime":round((end-start)/60,2)
                         }
-        # pklpath = CHART_PATH + f"ResultDict-{timestamp}-{label}-{module}-{agent_name}.pkl"
-        # # pklpath = CHART_PATH + f"ResultDict-{timestamp}-{label}-{module}.pkl"
-        # with open(pklpath, 'wb') as handle:
-        #     pickle.dump(result_dict, handle)
-        # print(f"Scores pickled at {pklpath}")
         pickle_results(CHART_PATH, result_dict, timestamp, label, agent_name)
     return result_dict
 
@@ -140,19 +133,12 @@ def train_unity(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, module, timestamp
             if np.mean(scores_window)>=score_target:
                 end = time.time()
                 print(f'\nEnvironment solved in {i_episode:d} episodes!\tAverage Score: {np.mean(scores_window):.2f}\tRuntime: {(end-start)/60:.2f}')
-                # checkpath = CHECKPOINT_PATH + f'{timestamp}-checkpoint-{label}-{agent_name}.pth'
-                # torch.save(agent.qnetwork_local.state_dict(), checkpath)
-                # print(f"Checkpoint saved at {checkpath}")
                 save_checkpoint(agent, CHECKPOINT_PATH, timestamp, label, module, agent_name)
                 break
         result_dict[agent_name] = {
                         "scores":scores,
                         "clocktime":round((end-start)/60,2)
                         }
-        # pklpath = CHART_PATH + f"{timestamp}-ResultDict-{label}-{agent_name}.pkl"
-        # with open(pklpath, 'wb') as handle:
-        #     pickle.dump(result_dict, handle)
-        # print(f"Scores pickled at {pklpath}")
         pickle_results(CHART_PATH, result_dict, timestamp, label, agent_name)
     return result_dict
 
@@ -184,13 +170,20 @@ def train_envs(PATH, CHART_PATH, CHECKPOINT_PATH, agent_dict, timestamp, env_dic
         print(f"Scores pickled at {pklpath}")
     return rd
 
-def chart_results(CHART_PATH, pklfile):
-    """Charts performance results by agent."""
+def chart_results(CHART_PATH, pklfile, roll_length=100):
+    """
+    Charts performance results by agent.
+
+    CHART_PATH (str): path to results pickle file
+    pklfile (str): name of results pickle file
+    roll_length (int): take average of this many episodes
+    """
     pklpath = CHART_PATH + pklfile
     timestamp = pklpath.split(".")[-2].split("-")[-1]
 
     with open(pklpath, 'rb') as handle:
-        results = pickle.load(handle)
+        results = pd.DataFrame(pickle.load(handle))
+        results.columns = [x.replace("/","") for x in results.columns]
     for module in results.keys():
         mod_data = results[module]
         fig = plt.figure()
@@ -207,11 +200,11 @@ def chart_results(CHART_PATH, pklfile):
             plt.plot(np.arange(len(scores)), avg_scores,label=key)
             plt.ylabel('Score')
             plt.xlabel('Episode #')
-            plt.title(f"{module}")
+            plt.title(f"{module.split('_')[0]}")
             plt.legend()
-        chartpath = CHART_PATH + f"{timestamp}-NavigationTrainChart-{module}-{key}.png"
+        chartpath = CHART_PATH + f"RLTrainChart-{timestamp}-{module}-{key}.png"
         plt.savefig(chartpath)
-        print(f"Chart saved at {chartpath}")
+    print(f"Charts saved at {CHART_PATH} with timestamp {timestamp}")
     plt.show()
     display(pd.DataFrame(results))
     return results
