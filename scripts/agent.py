@@ -13,7 +13,8 @@ from torch.autograd import Variable
 lr = 0.00025        # learning rate
 buf_sz = int(1e5)   # replay buffer size
 bs = 64             # minibatch size
-a = 0.4             # alpha
+a = 0.4             # alpha, prioritization level (alpha=0 is uniform)
+b = 1.0             # beta, importance-sampling weight to control how much weights affect learning
 g = 0.99            # gamma, discount factor
 t = 1e-3            # tau, for soft update of target parameters
 fq = 4              # frequency, how often to update the network
@@ -33,6 +34,11 @@ class Vanilla:
         ss (int): Dimension of state
         acts (int): Dimension of action
         seed (int): Random seed
+        buf_sf (int): Replay buffer size
+        bs (int): Batch size
+        g (float): gamma discount rate
+        lr (float): learning rate
+        update_fq (int): network update frequency
         """
         self.ss = ss
         self.acts = acts
@@ -52,7 +58,10 @@ class Vanilla:
         self.memory = ReplayBuffer(acts, bs, seed, buf_sz)
         self.t_step = 0
 
-    def step(self, state, action, reward, next_state, done, b=1.0):
+    def step(self, state, action, reward, next_state, done, b=b):
+        """
+        b (float): beta importance-sampling weight to control how much weights affect learning
+        """
         # save experience in replay memory
         self.memory.add(state, action, reward, next_state, done)
 
@@ -61,11 +70,12 @@ class Vanilla:
         if self.t_step == 0:
             # if enough samples available in memory, get random subset and learn
             if len(self.memory)> bs:
-                expers = self.memory.sample(a, b)
+                expers = self.memory.sample(a,b)
                 self.learn(expers, g)
 
     def act(self, state, e=0.):
-        """Return acts for given state per current policy
+        """
+        Return acts for given state per current policy
         state (arr): current state
         e (float): epsilon for e-greedy action selection
         """
@@ -82,7 +92,8 @@ class Vanilla:
             return random.choice(np.arange(self.acts))
 
     def learn(self, expers, g):
-        """Update value params using given batch of experience tuples
+        """
+        Update value params using given batch of experience tuples
         expers (Tuple[torch.Tensor]): tuple of (s, a, r, s', done)
         g (float): discount factor
         """
@@ -125,8 +136,7 @@ class Double(Vanilla):
     See paper "Deep Reinforcement Learning with Double Q-Learning" at https://arxiv.org/abs/1509.06461
     Inspired by code from https://github.com/franckalbinet/drlnd-project1/blob/master/dqn_agent.py
     """
-    def __init__(self, ss, acts, seed, buf_sz=buf_sz,
-                 bs=bs,g=g,lr=lr,update_fq=fq):
+    def __init__(self, ss, acts, seed, buf_sz=buf_sz,bs=bs,g=g,lr=lr,update_fq=fq):
         super(Double, self).__init__(ss, acts, seed)
 
     def learn(self, expers, g):

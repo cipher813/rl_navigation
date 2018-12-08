@@ -1,23 +1,26 @@
 # Reinforcement Learning Navigation
 ## Project Report
+<a name="report"></a>
 
-# TODO
-- description of implementation
-- learning algorithm
-- chosen hyperparameters
-- model architectures for neural networks
-- Add plot of rewards per episode
+## The Reinforcement Learning (RL) Environment
+<a name="environment"></a>
 
-# The Reinforcement Learning (RL) Environment
-**TODO link to Environment Info**
+Train an agent to collect bananas while navigating a large square world.  
 
-State space: 37
+Yellow bananas are worth +1.0 point while a blue is -1.0 point. The environment is considered solved once the agent is able to attain an average score of 13.0 over 100 consecutive episodes.
 
-Action space: 4
+State space: 37 dimensions containing agent's velocity and ray-based perception of objects around the agent's forward direction.
 
-The environment is considered solved once the agent is able to attain an average score of 13.0 over 100 episodes.
+Action space: 4 possible actions for the agent to take, including:
+- 0 forward
+- 1 backward
+- 2 turn left
+- 3 turn right
 
-# The Algorithm
+Additional Unity environment details can be found on the [project description](https://github.com/udacity/deep-reinforcement-learning/tree/master/p1_navigation).  
+
+## The Algorithm
+<a name="algorithm"></a>
 
 A Deep Q Network (DQN) is used in training the agent to solve the environment.  In this project, we implement the following versions of DQN:
 
@@ -25,7 +28,7 @@ A Deep Q Network (DQN) is used in training the agent to solve the environment.  
 
 2. Double, which addresses the inherent overestimation of action values in the base case.  Research from Hasselt's ["Deep Reinforcement Learning with Double Q-learning"](https://arxiv.org/abs/1509.06461)(Arxiv, 8 December 2015).  *Class inherits from Vanilla.*
 
-3. Prioritized Experience Replay, which replays important episodes more frequently to learn more efficiently.  Research from Schaul's ["Prioritized Experience Replay"](https://arxiv.org/abs/1511.05952) (Arxiv, 25 February 2016) *Class inherits from Double.*
+3. Prioritized Experience Replay, which replays important episodes more frequently to learn more efficiently.  More frequently replay transitions with high expected learning progress as measured by the magnitude of their temporal-difference (TD) error. Research from Schaul's ["Prioritized Experience Replay"](https://arxiv.org/abs/1511.05952) (Arxiv, 25 February 2016) *Class inherits from Double.*
 
 4. Dueling, with a neural network architecture for model-free learning.  The dueling network reprsents two separate estimators, one fo the state value function and the other for the state-dependent action advantage function.  This generalizes learning across actions without imposing change to the underlying RL algorithm. Research from Wang's ["Dueling Network Architectures for Deep Reinforcement Learning"](https://arxiv.org/abs/1511.06581) (Arxiv, 5 April 2016) *Class inherits from Priority Replay.*
 
@@ -34,7 +37,27 @@ A Deep Q Network (DQN) is used in training the agent to solve the environment.  
 ![alt text](https://github.com/cipher813/rl_navigation/blob/master/charts/RLTrainChart-201812021453-Banana_Linux_NoVisBanana.x86_64-Vanilla.png "Banana Results by Algorithm")
 
 
+## Hyperparameters
+<a name="hyperparameters"></a>
+
+Hyperparameters used in all implementations of the DQN algorithm include:
+- learning rate:  2.5e-4  learning rate used by RMSProp
+- buffer size:    1e5     experience replay buffer
+- batch size:     64      SGD update by this number of training cases
+- alpha:          0.4     prioritization factor (a=0 is uniform)
+- beta:           1.0     importance-sampling weight
+- gamma:          0.99    discount factor
+- tau:            1e-3    soft update of target parameters
+- frequency:      4       how often to update the network
+
+
+# Neural Network Architecture
+<a name="network"></a>
+
+The underlying Q Network used in the implementation is a 3 layer network with the input and output layers mapping to the state and action sizes of 37 and 4 (per [Environment](#environment)), respectively.  There are two hidden layers of 64 nodes each which ReLU as the activation layers.  The output is a fully-connectd linear layer with a single output for each valid action.  
+
 # Next Steps
+<a name="nextsteps"></a>
 
 Potential areas to explore in further work include:
 

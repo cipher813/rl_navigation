@@ -64,7 +64,7 @@ class ReplayBuffer:
         e = self.experience(state, action, reward, next_state, done)
         self.memory.append(e)
 
-    def sample(self, a, b):
+    def sample(self,a,b):
         """Randomly sample a batch of experiences from memory"""
         expers = random.sample(self.memory, k=self.bs)
 
@@ -98,7 +98,11 @@ class PriorityReplayBuffer(ReplayBuffer):
         self.memory.append(e)
 
     def sample(self, a, b):
-        """Randomly sample a batch of expers from memory"""
+        """
+        Randomly sample a batch of expers from memory
+        a (float): alpha prioritization factor (a=0 is uniform)
+        b (float): beta importance-sampling weight to control how much weights affect learning
+        """
         priorities = np.array([sample.priority for sample in self.memory])
         probs = priorities ** a
         probs /= probs.sum()
