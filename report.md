@@ -1,7 +1,8 @@
-# Reinforcement Learning Navigation
-## Project Report<a name="report"></a>
+<a name="report"></a>
+# Reinforcement Learning Navigation: Project Report
 
-## The Reinforcement Learning (RL) Environment<a name="environment"></a>
+<a name="environment"></a>
+## The Reinforcement Learning (RL) Environment
 
 Train an agent to collect bananas while navigating a large square world.  
 
@@ -17,7 +18,8 @@ Action space: 4 possible actions for the agent to take, including:
 
 Additional Unity environment details can be found on the [project description](https://github.com/udacity/deep-reinforcement-learning/tree/master/p1_navigation).  
 
-## The Algorithm<a name="algorithm"></a>
+<a name="algorithm"></a>
+## The Algorithm
 
 A Deep Q Network (DQN) is used in training the agent to solve the environment.  In this project, we implement the following versions of DQN:
 
@@ -33,8 +35,8 @@ A Deep Q Network (DQN) is used in training the agent to solve the environment.  
 
 ![alt text](https://github.com/cipher813/rl_navigation/blob/master/charts/RLTrainChart-201812021453-Banana_Linux_NoVisBanana.x86_64-Vanilla.png "Banana Results by Algorithm")
 
-
-## Hyperparameters<a name="hyperparameters"></a>
+<a name="hyperparameters"></a>
+## Hyperparameters
 
 Hyperparameters used in all implementations of the DQN algorithm include:
 - learning rate:  2.5e-4  learning rate used by RMSProp
@@ -46,12 +48,13 @@ Hyperparameters used in all implementations of the DQN algorithm include:
 - tau:            1e-3    soft update of target parameters
 - frequency:      4       how often to update the network
 
-
-# Neural Network Architecture<a name="network"></a>
+<a name="network"></a>
+# Neural Network Architecture
 
 The underlying Q Network used in the implementation is a 3 layer network with the input and output layers mapping to the state and action sizes of 37 and 4 (per [Environment](#environment)), respectively.  There are two hidden layers of 64 nodes each which ReLU as the activation layers.  The output is a fully-connectd linear layer with a single output for each valid action.  
 
-# Next Steps<a name="nextsteps"></a>
+<a name="nextsteps"></a>
+# Next Steps
 
 Potential areas to explore in further work include:
 

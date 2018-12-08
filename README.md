@@ -20,13 +20,13 @@
 
 - [Next Steps](https://github.com/cipher813/rl_navigation/blob/master/report.md#nextsteps)
 
-
-## Project Overview<a name="overview"></a>
+<a name="overview"></a>
+## Project Overview
 
 For [Project 1](https://github.com/udacity/deep-reinforcement-learning/tree/master/p1_navigation) of Udacity's [Deep Reinforcement Learning Nanodegree](https://github.com/udacity/deep-reinforcement-learning), we were tasked with teaching an agent to navigate a Unity environment where it must collect yellow bananas (reward +1) while avoiding blue bananas (reward -1).  The Deep Q Network (DQN) algorithm is further explained in the accompanying [Report](https://github.com/cipher813/rl_navigation/blob/master/report.md).
 
-
-## Environment Setup<a name="setup"></a>
+<a name="setup"></a>
+## Environment Setup
 
 To set up the python (conda) environment, in the root directory, type:
 
@@ -38,7 +38,8 @@ To download the Unity environment for your OS, see the links on the [Udacity Pro
 
 Potential areas of the project to expand upon in future work is explored in the accompanying [Report](https://github.com/cipher813/rl_navigation/blob/master/report.md).
 
-## The Model<a name="model"></a>
+<a name="model"></a>
+## The Model
 
 The key files in this repo include:
 
@@ -71,4 +72,4 @@ Charts the results from specified results dictionary pickle file.
 
 ### Models
 
-Contains the model weights of each implementation.  
+Contains the "checkpoint" model weights of each implementation.  
