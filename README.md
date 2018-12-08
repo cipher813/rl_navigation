@@ -1,6 +1,6 @@
 # Reinforcement Learning Navigation
 
-## Table of Contents
+## Repo Table of Contents
 
 [Project Overview](#overview)
 
@@ -45,16 +45,16 @@ The key files in this repo include:
 
 ### Scripts
 
-**network.py**
+[network.py](https://github.com/cipher813/rl_navigation/tree/master/scripts)
 Contains classes for QNetwork, Replay Buffer (Vanilla), Priority Replay Buffer (Priority Replay agent) and Noisy Linear (Rainbow agent)
 
-**agent.py**
+[agent.py](https://github.com/cipher813/rl_navigation/tree/master/scripts)
 Contains Deep Q Network (DQN) agent classes for Vanilla, Double, Priority Replay, Dueling, A3C and Rainbow (work in progress).  See [report.md](https://github.com/cipher813/rl_navigation/blob/master/report.md) for additional details on agent implementations.
 
-**util.py**
+[util.py](https://github.com/cipher813/rl_navigation/tree/master/scripts)
 Contains functions to train in Unity and OpenAI environments, and to chart results.
 
-**main.py**
+[main.py](https://github.com/cipher813/rl_navigation/tree/master/scripts)
 Execute this script to train in the environment(s) and agent(s) specified on this script in the environment and agent dictionaries, respectively.  
 
 
@@ -66,10 +66,10 @@ To train the agent, in the command line run:
 
 ### Notebooks
 
-**rln_results.ipynb**
+[rln_results.ipynb](https://github.com/cipher813/rl_navigation/tree/master/notebooks)
 
 Charts the results from specified results dictionary pickle file.  
 
 ### Models
 
-Contains the "checkpoint" model weights of each implementation.  
+Contains the "checkpoint" [model weights](https://github.com/cipher813/rl_navigation/tree/master/models) of each implementation.  

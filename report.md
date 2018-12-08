@@ -1,6 +1,18 @@
 <a name="report"></a>
 # Reinforcement Learning Navigation: Project Report
 
+## Report Table of Contents
+
+[RL Environment](#environment)
+
+[Algorithm](#algorithm)
+
+[Hyperparameters](#hyperparameters)
+
+[Network Architecture](#network)
+
+[Next Steps](#nextsteps)
+
 <a name="environment"></a>
 ## The Reinforcement Learning (RL) Environment
 
@@ -68,7 +80,7 @@ Other popular implementations of the DQN algorithm which may be implemented into
 
 7. Noisy, which adds parametric noise to the weights which can aid efficient exploration.  Research per Fortunato's ["Noisy Networks for Exploration"](https://arxiv.org/abs/1706.10295)(Arxiv, 15 February 2018)
 
-8. Rainbow, which incorporates all of the above modifications.  Research per Hessel's ["Rainbow: Combining Improvements in Deep Reinforcement Learning"](https://arxiv.org/abs/1710.02298)(Arxiv, 6 October 2017)
+8. Rainbow, which incorporates all of the above modifications.  Research per Hessel's ["Rainbow: Combining Improvements in Deep Reinforcement Learning"](https://arxiv.org/abs/1710.02298)(Arxiv, 6 October 2017) *The Rainbow and related NoisyLinear classes are currently a work in progress in the scripts in this repo*
 
 
 **Environments**
