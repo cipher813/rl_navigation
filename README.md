@@ -3,14 +3,22 @@
 ## Table of Contents
 
 [Project Overview](#overview)
+
 [Environment Setup](#setup)
+
 [Model](#model)
-[Report](#report)
-- [RL Environment](#environment)
-- [Algorithm](#algorithm)
-- [Hyperparameters](#hyperparameters)
-- [Network Architecture](#network)
-- [Next Steps](#nextsteps)
+
+[Report](https://github.com/cipher813/rl_navigation/blob/master/report.md#report)
+
+- [RL Environment](https://github.com/cipher813/rl_navigation/blob/master/report.md#environment)
+
+- [Algorithm](https://github.com/cipher813/rl_navigation/blob/master/report.md#algorithm)
+
+- [Hyperparameters](https://github.com/cipher813/rl_navigation/blob/master/report.md#hyperparameters)
+
+- [Network Architecture](https://github.com/cipher813/rl_navigation/blob/master/report.md#network)
+
+- [Next Steps](https://github.com/cipher813/rl_navigation/blob/master/report.md#nextsteps)
 
 
 ## Project Overview
